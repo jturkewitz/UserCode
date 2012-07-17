@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.PSet()
 
-from HSCP2011.ToyMC.makeHSCParticlePlotsAndDoLikelihoodFitsCommonParameters_cfi import *
+from HSCP.Analysis.makeHSCParticlePlotsAndDoLikelihoodFitsCommonParameters_cfi import *
 
 process.doToyMC = cms.PSet(
     analysisCommonParameters,

@@ -13,7 +13,7 @@
 //
 // Original Author:  Seth Cooper,27 1-024,+41227672342,
 //         Created:  Mon May 23 14:02:32 CEST 2010
-// $Id: GenerateHSCPToyMC.h,v 1.2 2011/06/30 13:51:12 scooper Exp $
+// $Id: GenerateHSCPToyMC.h,v 1.1 2012/07/17 14:18:11 jared Exp $
 //
 //
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -29,8 +29,8 @@
 #include "TStyle.h"
 #include "TFile.h"
 
-#include "HSCP2011/ToyMC/interface/GenerateToyMcRooFit.calcPdfTF1Defs.h"
-#include "HSCP2011/ToyMC/interface/GenerateToyMcRooFit.trackNomVsEta.mu2010abTrigSkimPlot.h"
+#include "HSCP/Analysis/interface/GenerateToyMcRooFit.calcPdfTF1Defs.h"
+#include "HSCP/Analysis/interface/GenerateToyMcRooFit.trackNomVsEta.mu2010abTrigSkimPlot.h"
 
 //
 // class declaration

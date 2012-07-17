@@ -1,0 +1,141 @@
+<bin   name="makeEffVsRejPlots" file="makeEffVsRejPlots.cpp">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+</bin>
+<bin   name="plotDeDxInBetaSlices" file="plotDeDxInBetaSlices.cpp">
+  <use   name="root"/>
+</bin>
+<bin   name="sampleLandauToyMC" file="sampleLandauToyMC.cpp">
+  <use   name="root"/>
+  <use   name="roofit"/>
+  <use   name="roofitcore"/>
+</bin>
+<bin   name="plotDeDxPdep" file="plotDeDxPdep.cpp">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+</bin>
+<bin   name="plotDeDxNoBetaDepSigmaDep" file="plotDeDxNoBetaDepSigmaDep.cpp">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+</bin>
+<bin   name="plotDeDxEtaSlices" file="plotDeDxEtaSlices.cpp">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+</bin>
+<bin   name="plotDeDxSingleHitEtaSlices" file="plotDeDxSingleHitEtaSlices.cpp">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+</bin>
+<bin   name="sampleLandauToyMC" file="sampleLandauToyMC.cpp">
+  <use   name="root"/>
+  <use   name="roofit"/>
+  <use   name="roofitcore"/>
+</bin>
+<bin   name="makeHSCParticlePlots" file="makeHSCParticlePlots.cpp">
+  <use   name="FWCore/FWLite"/>
+  <use   name="FWCore/PythonParameterSet"/>
+  <use   name="CommonTools/Utils"/>
+  <use   name="DataFormats/FWLite"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="DataFormats/Math"/>
+  <use   name="DataFormats/HepMCCandidate"/>
+  <use   name="PhysicsTools/FWLite"/>
+  <use   name="PhysicsTools/Utilities"/>
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="roofit"/>
+  <use   name="clhep"/>
+</bin>
+<bin   name="makeIasDists" file="makeIasDists.cpp">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+</bin>
+<bin   name="makeIasPredictions" file="makeIasPredictions.cpp">
+  <use   name="FWCore/FWLite"/>
+  <use   name="FWCore/PythonParameterSet"/>
+  <use   name="CommonTools/Utils"/>
+  <use   name="DataFormats/FWLite"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="DataFormats/Math"/>
+  <use   name="DataFormats/HepMCCandidate"/>
+  <use   name="PhysicsTools/FWLite"/>
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="roofit"/>
+  <use   name="clhep"/>
+</bin>
+<bin   name="makeIasPredictionsOneSlice" file="makeIasPredictionsOneSlice.cpp">
+  <use   name="FWCore/FWLite"/>
+  <use   name="FWCore/PythonParameterSet"/>
+  <use   name="CommonTools/Utils"/>
+  <use   name="DataFormats/FWLite"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="DataFormats/Math"/>
+  <use   name="DataFormats/HepMCCandidate"/>
+  <use   name="PhysicsTools/FWLite"/>
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="roofit"/>
+  <use   name="clhep"/>
+</bin>
+<bin   name="doToyMC" file="doToyMC.cpp">
+  <use   name="FWCore/FWLite"/>
+  <use   name="FWCore/PythonParameterSet"/>
+  <use   name="CommonTools/Utils"/>
+  <use   name="DataFormats/FWLite"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="PhysicsTools/FWLite"/>
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="roofit"/>
+  <use   name="clhep"/>
+</bin>
+<bin name="makeEffVsRejPlots" file="makeEffVsRejPlots.cpp">
+  <use name="root"/>
+  <use name="roofit"/>
+</bin>
+<bin   name="makeScaledPredictionHistograms" file="makeScaledPredictionHistograms.cpp">
+  <use   name="FWCore/FWLite"/>
+  <use   name="FWCore/PythonParameterSet"/>
+  <use   name="CommonTools/Utils"/>
+  <use   name="DataFormats/FWLite"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="DataFormats/Math"/>
+  <use   name="DataFormats/HepMCCandidate"/>
+  <use   name="PhysicsTools/FWLite"/>
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="roofit"/>
+  <use   name="clhep"/>
+</bin>
+<bin   name="makeScaledPredictionHistogramsOneSlice" file="makeScaledPredictionHistogramsOneSlice.cpp">
+  <use   name="FWCore/FWLite"/>
+  <use   name="FWCore/PythonParameterSet"/>
+  <use   name="CommonTools/Utils"/>
+  <use   name="DataFormats/FWLite"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="DataFormats/Math"/>
+  <use   name="DataFormats/HepMCCandidate"/>
+  <use   name="PhysicsTools/FWLite"/>
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="roofit"/>
+  <use   name="clhep"/>
+</bin>
+<bin   name="mergeHSCParticlePlotsRooDataSets" file="mergeHSCParticlePlotsRooDataSets.cpp">
+  <use   name="FWCore/FWLite"/>
+  <use   name="FWCore/PythonParameterSet"/>
+  <use   name="CommonTools/Utils"/>
+  <use   name="DataFormats/FWLite"/>
+  <use   name="DataFormats/TrackReco"/>
+  <use   name="DataFormats/Math"/>
+  <use   name="DataFormats/HepMCCandidate"/>
+  <use   name="PhysicsTools/FWLite"/>
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="roofit"/>
+  <use   name="clhep"/>
+</bin>
+<bin   name="testRooDataset" file="testRooDataset.cpp">
+  <use   name="roofit"/>
+</bin>

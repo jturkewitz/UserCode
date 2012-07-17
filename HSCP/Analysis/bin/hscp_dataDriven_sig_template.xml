@@ -1,0 +1,27 @@
+<!--
+//============================================================================
+// Name        : example.xml
+//============================================================================
+-->
+
+<!--
+    Top-level configuration,  details for the example channel are in example_channel.xml.
+    This is the input file to the executable.
+
+    Note: Config.dtd needs to be accessible.  It can be found in ROOT release area.  
+    The file system path is relative to location of this XML file, not the executable.
+-->
+
+<!DOCTYPE Combination  SYSTEM 'HistFactorySchema.dtd'>
+
+<Combination OutputFilePrefix="hscp"  >
+
+  <Input>XXX_INPUTFILE_XXX</Input>
+
+  <Measurement Name="hscp" Lumi="1.0" LumiRelErr="0.022" ExportOnly="False" >
+    <POI>SigXsec</POI>
+  <!--  <ParamSetting Const="True">Lumi</ParamSetting> -->
+  </Measurement>
+
+
+</Combination>

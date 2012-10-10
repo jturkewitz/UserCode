@@ -63,10 +63,10 @@ def CreateTheShellFile(bgInputFile,sigInputFile,massCut,iasCut,ptCut,xSecMin,xSe
       shell_file.write('# use later root\n')
       # UMN
       if(Condor):
-        shell_file.write('source /local/cms/user/cooper/root/bin/thisroot.sh\n')
+        shell_file.write('source /local/cms/sw/cmsset_CMSSW5X.sh\n')
       else:
         # CERN
-        shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc434\n')
+        shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc462\n')
         shell_file.write('source /afs/cern.ch/sw/lcg/external/gcc/4.3.2/x86_64-slc5/setup.sh\n')
         shell_file.write('source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.32.02/x86_64-slc5-gcc43-opt/root/bin/thisroot.sh\n')
       shell_file.write('cd ' + os.getcwd() + '/' + Farm_Directories[0] + 'outputs/makeScaledPredictions/' + signalName + '_Limits\n')
@@ -88,10 +88,12 @@ def CreateTheShellFile(bgInputFile,sigInputFile,massCut,iasCut,ptCut,xSecMin,xSe
       shell_file.write('# use later root\n')
       # UMN
       if(Condor):
-        shell_file.write('source /local/cms/user/cooper/root/bin/thisroot.sh\n')
+        ##shell_file.write('source /local/cms/sw/cmsset_CMSSW5X.sh\n')
+        shell_file.write('source /local/cms/user/turkewitz/root/bin/thisroot.sh\n')
+        ##shell_file.write('source /home/user1/turkewitz/Root/root/bin/thisroot.sh\n')
       else:
         # CERN
-        shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc434\n')
+        shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc462\n')
         shell_file.write('source /afs/cern.ch/sw/lcg/external/gcc/4.3.2/x86_64-slc5/setup.sh\n')
         shell_file.write('source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.32.02/x86_64-slc5-gcc43-opt/root/bin/thisroot.sh\n')
       shell_file.write('cd ' + os.getcwd() + '/' + Farm_Directories[0] + 'outputs/makeScaledPredictions/' + signalName + '_Limits\n')
@@ -142,7 +144,7 @@ def CreateTheCmdFile():
       #cmd_file.write('+CondorGroup            = "cmsfarm"\n')
       cmd_file.write('+CondorGroup            = "twins"\n')
       cmd_file.write('should_transfer_files   = NO\n')
-      cmd_file.write('Notify_user = cooper@physics.umn.edu\n')
+      cmd_file.write('Notify_user = turkewitz@physics.umn.edu\n')
       #cmd_file.write('should_transfer_files   = YES\n')
       #cmd_file.write('when_to_transfer_output = ON_EXIT\n')
     else:

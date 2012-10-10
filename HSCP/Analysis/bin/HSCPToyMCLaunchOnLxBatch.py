@@ -98,7 +98,7 @@ def CreateTheShellFile(eta,nom):
     shell_file=open(Path_Shell,'w')
     shell_file.write('#!/bin/sh\n')
     shell_file.write(CopyRights + '\n')
-    shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc434\n')
+    shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc462\n')
     shell_file.write('source /afs/cern.ch/cms/sw/cmsset_default.sh\n')
     shell_file.write('cd ' + os.getcwd() + '\n')
     shell_file.write('eval `scramv1 runtime -sh`\n')

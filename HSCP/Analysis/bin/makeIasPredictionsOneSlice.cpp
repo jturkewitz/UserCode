@@ -1047,7 +1047,7 @@ int main(int argc, char ** argv)
       {
         double expVal = myExp->Eval(iasPredictionFixedLimitsHist->GetBinCenter(bin));
         double absErr = sqrt(expVal);
-        if(std::isnan(absErr) && expVal < emptyBinVal)
+        if(isnan((float)absErr) && expVal < emptyBinVal)
         {
           iasPredictionFixedLimitsHist->SetBinContent(bin,emptyBinVal);
           iasPredictionFixedLimitsHist->SetBinError(bin,sqrt(emptyBinVal));

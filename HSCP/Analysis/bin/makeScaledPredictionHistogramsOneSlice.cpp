@@ -1223,7 +1223,7 @@ int main(int argc, char ** argv)
           pow(reweightedPInCRegionHist->GetBinError(x)/reweightedPInCRegionHist->GetBinContent(x),2)+
           pow(ihBRegionTotalHist->GetBinError(y)/ihBRegionTotalHist->GetBinContent(y),2));
       //std::cout << "\tDEBUG: prob = " << prob << std::endl;
-      if(prob <= 0 || std::isnan(prob))
+      if(prob <= 0 || isnan((float)prob))
         continue;
       double massSqr = (thisIh-dEdx_c)*pow(thisP,2)/dEdx_k;
       //std::cout << "\tDEBUG: mass^2 = " << massSqr << std::endl;
@@ -1251,7 +1251,7 @@ int main(int argc, char ** argv)
     //cout << "DEBUG: massError this bin (" << x << ") = " << 
     //    scaledMass*sqrt(pow(massErrorHist->GetBinContent(x)/massHist->GetBinContent(x),2)+
     //      pow(dPredTotalError/dPredTotal,2)) << endl;
-    //if(std::isnan(tmpH_Mass    ->GetBinContent(x) * PE_P)){printf("%f x %f\n",tmpH_Mass    ->GetBinContent(x),PE_P); fflush(stdout);exit(0);}
+    //if(isnan((float)tmpH_Mass    ->GetBinContent(x) * PE_P)){printf("%f x %f\n",tmpH_Mass    ->GetBinContent(x),PE_P); fflush(stdout);exit(0);}
   }
 
   cout << endl << endl

@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 
 
   // kill RooFit/RooStats output
-  RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING);
+  //RooMsgService::instance().setGlobalKillBelow(RooFit::WARNING);
 
   vector<double> trialCrossSections;
   int fileCounter = 0;

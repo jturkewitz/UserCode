@@ -31,7 +31,11 @@ CutIas = 0.1
 #CutPt = 'Std'
 #CutIas = 'Std'
 
-FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_stop200N_moreToys_Jul12'
+#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Jul31'
+FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Aug15'
+
+#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Jul18'
+#FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_stop200N_moreToys_Jul12'
 #FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_glu300N400N_moreToys_Jul12'
 #FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_moreModels_moreToys_Jul11'
 #FarmDirectory = 'FARM_50IasB_emptyB1e-25_pureFreqAndInitialFit_overallSigSystOnly_moreModels_Jul10'
@@ -54,14 +58,16 @@ FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_stop200N
 #FarmDirectory+=Date
 
 InputDataRootFile = os.getcwd()
-InputDataRootFile+='/FARM_MakeHSCParticlePlots_Data_Apr28/outputs/makeHSCParticlePlots_Data2011_all.root'
+InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_Aug15/outputs/makeHSCParticlePlots_Aug15_Data2012_all.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_Data_Apr28/outputs/makeHSCParticlePlots_Data2011_all.root'
 #InputDataRootFile+='/FARM_MakeHSCParticlePlots_dataWithTightRPCTrig_absEta_ptErrorPresel_feb6/outputs/makeHSCParticlePlots_feb1_Data2011_all.root'
 #InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_absEta_ptErrorPresel_Mar08/outputs/makeHSCParticlePlots_Data2011_all.root'
 #InputDataRootFile+='/FARM_MakeHSCParticlePlots_absEta_ptErrorPresel_Mar21/outputs/makeHSCParticlePlots_Mar21_Data2011_all.root'
-sigInput = os.getcwd()
-#sigInput+='/FARM_MakeHSCParticlePlots_Signals_deDxSystematics_May25/outputs/makeHSCParticlePlots_May25_'
-sigInput+='/FARM_MakeHSCParticlePlots_Signals_Jul06/outputs/makeHSCParticlePlots_Jul06_'
-IntLumi = 4976 # 1/pb (2011, new pixel measurement)
+#sigInput = os.getcwd()
+sigInput='/local/cms/user/turkewitz/HSCP/CMSSW_4_2_8_HSCP/src/HSCP2011/ToyMC/bin/FARM_MakeHSCParticlePlots_Signals_signalJul26/outputs/makeHSCParticlePlots_Jul26_'
+#sigInput+='/FARM_MakeHSCParticlePlots_Signals_Jul06/outputs/makeHSCParticlePlots_Jul06_'
+#IntLumi = 4976 # 1/pb (2011, new pixel measurement)
+IntLumi = 4801 # 1/pb (2012, few runs)
 #
 
 OutputIasPredictionDir = os.getcwd()
@@ -313,7 +319,7 @@ def combineLimitResults():
     #shell_file.write('source /afs/cern.ch/sw/lcg/external/gcc/4.3.2/x86_64-slc5/setup.sh\n')
     #shell_file.write('source /afs/cern.ch/sw/lcg/app/releases/ROOT/5.32.02/x86_64-slc5-gcc43-opt/root/bin/thisroot.sh\n')
     # UMN
-    shell_file.write('source /local/cms/user/cooper/root/bin/thisroot.sh\n')
+    shell_file.write('source /local/cms/user/turkewitz/root/bin/thisroot.sh\n')
     shell_file.write(os.getcwd()+'/combineLimitResults '+doLimitsOutputDir+' '+model.name+' |tee '+logFileName+'\n')
     shell_file.close()
     os.system("chmod 777 /tmp/combine.sh")
@@ -353,7 +359,7 @@ def doSignificance():
 
 def combineHypoTestResults():
   # for combining significance test with toys -- CLs
-  doSignificanceOutputDir = FarmDirectory+'/outputs/doSignificance'
+  doSignificanceOutputDir = FarmDirectory+'/outputs/doSignificance/'
   for model in ModelListToys:
     for poi in PoiList:
       doSignificanceMerge = []

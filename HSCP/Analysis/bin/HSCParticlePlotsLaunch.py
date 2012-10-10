@@ -26,7 +26,7 @@ RunCondor         = False
 
 
 def CreateTheConfigFile(jobName, baseCfg, inputFile, crossSection, massCut, intLumi, intLumiBefTrigChange,
-                        isMC, isHSCP):
+                        is8TeV, isMC, isHSCP):
     global CopyRights
     global Farm_Directories
     global Jobs_Name
@@ -44,6 +44,7 @@ def CreateTheConfigFile(jobName, baseCfg, inputFile, crossSection, massCut, intL
     config_txt = config_txt.replace("XXX_OUTPUTFILE_XXX", outputFile)
     config_txt = config_txt.replace("XXX_CROSSSECTION_XXX" , str(crossSection))
     config_txt = config_txt.replace("XXX_MASSCUT_XXX", str(massCut))
+    config_txt = config_txt.replace("XXX_IS8TEV_XXX", is8TeV)
     config_txt = config_txt.replace("XXX_ISMC_XXX", isMC)
     config_txt = config_txt.replace("XXX_ISHSCP_XXX", isHSCP)
     config_txt = config_txt.replace("XXX_INTEGRATEDLUMI_XXX" , str(intLumi))
@@ -53,11 +54,11 @@ def CreateTheConfigFile(jobName, baseCfg, inputFile, crossSection, massCut, intL
     config_file.write(config_txt)
     config_file.close()
 
-def CreateTheShellFile(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,isMC,isHSCP):
+def CreateTheShellFile(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,is8TeV,isMC,isHSCP):
     global Path_Shell
     global CopyRights
     global Jobs_Name
-    CreateTheConfigFile(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,isMC,isHSCP)
+    CreateTheConfigFile(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,is8TeV,isMC,isHSCP)
     outputFile = Jobs_Name+jobName+'.root'
     path_Cfg   = Farm_Directories[1]+Jobs_Name+jobName+'_cfg.py'
     Path_Shell = Farm_Directories[1]+Jobs_Name+jobName+'.sh'
@@ -96,7 +97,7 @@ def CreateTheCmdFile():
       cmd_file.write('Universe                = vanilla\n')
       cmd_file.write('Environment             = CONDORJOBID=$(Process)\n')
       cmd_file.write('notification            = Error\n')
-      cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="zebra01.spa.umn.edu")&&(Machine=!="zebra02.spa.umn.edu")&&(Machine=!="zebra03.spa.umn.edu")&&(Machine=!="caffeine.spa.umn.edu")\n')
+      cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="zebra01.spa.umn.edu")&&(Machine=!="zebra02.spa.umn.edu")&&(Machine=!="zebra03.spa.umn.edu")&&(Machine=!="caffeine.spa.umn.edu")&&(Machine=!="gc1-ce-sl5.spa.umn.edu.spa.umn.edu")\n')
       cmd_file.write('+CondorGroup            = "cmsfarm"\n')
       cmd_file.write('should_transfer_files   = NO\n')
       cmd_file.write('Notify_user = turkewitz@physics.umn.edu\n')
@@ -140,11 +141,11 @@ def SendCluster_Create(FarmDirectory,jobsName,runCondor):
     CreateDirectoryStructure(FarmDirectory,jobsName)
     CreateTheCmdFile()
 
-def SendCluster_Push(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,isMC,isHSCP):
+def SendCluster_Push(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,is8TeV,isMC,isHSCP):
     global Jobs_Count
     global Jobs_Index
     Jobs_Index = "%04i" % Jobs_Count
-    CreateTheShellFile(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,isMC,isHSCP)
+    CreateTheShellFile(jobName,baseCfg,inputFile,crossSection,massCut,intLumi,intLumiBefTrigChange,is8TeV,isMC,isHSCP)
     AddJobToCmdFile(jobName)
     Jobs_Count = Jobs_Count+1
 

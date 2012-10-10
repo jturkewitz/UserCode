@@ -119,7 +119,7 @@ Outputs: Root files with the HypoTestInverter information
 
 (5) Combine the limit-setting jobs.  This is done via Launch.py with a standalone binary called
 combineLimitResults.cpp.  I recommend updating the file setupRoot.sh with your installation
-of root.  Then you can execute makeCombineLimitResults (source makeCombineLimitResults) which
+of root, then (source setupRoot.sh).  Then you can execute makeCombineLimitResults (source makeCombineLimitResults) which
 will compile the standalone binary for you.  Once you have compiled the binary, you can invoke
 step 6 (python Launch.py 6) to combine the limit results.  You can also make sure in the output
 on the screen that the number of files being merged together is correct, and that a sensible

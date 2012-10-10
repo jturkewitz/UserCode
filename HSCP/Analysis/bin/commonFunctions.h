@@ -54,6 +54,70 @@ struct PlotStruct
   TH2F* pVsNoMEtaSlice6Hist;
   TH2F* pVsNoMEtaSlice7Hist;
   TH2F* pVsNoMEtaSlice8Hist;
+  TH2F* ihVsPEtaSlice1Hist;
+  TH2F* ihVsPEtaSlice2Hist;
+  TH2F* ihVsPEtaSlice3Hist;
+  TH2F* ihVsPEtaSlice4Hist;
+  TH2F* ihVsPEtaSlice5Hist;
+  TH2F* ihVsPEtaSlice6Hist;
+  TH2F* ihVsPEtaSlice7Hist;
+  TH2F* ihVsPEtaSlice8Hist;
+  TH2F* iasVsPEtaSlice1Hist;
+  TH2F* iasVsPEtaSlice2Hist;
+  TH2F* iasVsPEtaSlice3Hist;
+  TH2F* iasVsPEtaSlice4Hist;
+  TH2F* iasVsPEtaSlice5Hist;
+  TH2F* iasVsPEtaSlice6Hist;
+  TH2F* iasVsPEtaSlice7Hist;
+  TH2F* iasVsPEtaSlice8Hist;
+  TH2F* ihVsPProtonEtaSlice1Hist;
+  TH2F* ihVsPProtonEtaSlice2Hist;
+  TH2F* ihVsPProtonEtaSlice3Hist;
+  TH2F* ihVsPProtonEtaSlice4Hist;
+  TH2F* ihVsPProtonEtaSlice5Hist;
+  TH2F* ihVsPProtonEtaSlice6Hist;
+  TH2F* ihVsPProtonEtaSlice7Hist;
+  TH2F* ihVsPProtonEtaSlice8Hist;
+  TH2F* iasVsPProtonEtaSlice1Hist;
+  TH2F* iasVsPProtonEtaSlice2Hist;
+  TH2F* iasVsPProtonEtaSlice3Hist;
+  TH2F* iasVsPProtonEtaSlice4Hist;
+  TH2F* iasVsPProtonEtaSlice5Hist;
+  TH2F* iasVsPProtonEtaSlice6Hist;
+  TH2F* iasVsPProtonEtaSlice7Hist;
+  TH2F* iasVsPProtonEtaSlice8Hist;
+  TH2F* ihVsPNoMSlice1Hist;
+  TH2F* ihVsPNoMSlice2Hist;
+  TH2F* ihVsPNoMSlice3Hist;
+  TH2F* ihVsPNoMSlice4Hist;
+  TH2F* ihVsPNoMSlice5Hist;
+  TH2F* ihVsPNoMSlice6Hist;
+  TH2F* ihVsPNoMSlice7Hist;
+  TH2F* ihVsPNoMSlice8Hist;
+  TH2F* iasVsPNoMSlice1Hist;
+  TH2F* iasVsPNoMSlice2Hist;
+  TH2F* iasVsPNoMSlice3Hist;
+  TH2F* iasVsPNoMSlice4Hist;
+  TH2F* iasVsPNoMSlice5Hist;
+  TH2F* iasVsPNoMSlice6Hist;
+  TH2F* iasVsPNoMSlice7Hist;
+  TH2F* iasVsPNoMSlice8Hist;
+  TH2F* ihVsPProtonNoMSlice1Hist;
+  TH2F* ihVsPProtonNoMSlice2Hist;
+  TH2F* ihVsPProtonNoMSlice3Hist;
+  TH2F* ihVsPProtonNoMSlice4Hist;
+  TH2F* ihVsPProtonNoMSlice5Hist;
+  TH2F* ihVsPProtonNoMSlice6Hist;
+  TH2F* ihVsPProtonNoMSlice7Hist;
+  TH2F* ihVsPProtonNoMSlice8Hist;
+  TH2F* iasVsPProtonNoMSlice1Hist;
+  TH2F* iasVsPProtonNoMSlice2Hist;
+  TH2F* iasVsPProtonNoMSlice3Hist;
+  TH2F* iasVsPProtonNoMSlice4Hist;
+  TH2F* iasVsPProtonNoMSlice5Hist;
+  TH2F* iasVsPProtonNoMSlice6Hist;
+  TH2F* iasVsPProtonNoMSlice7Hist;
+  TH2F* iasVsPProtonNoMSlice8Hist;
   TH2F* nohVsNoMHist;
   TH2F* nohVsNoMCentralEtaHist;
   TH2F* pVsNoHHist;
@@ -236,7 +300,8 @@ struct PlotStruct
 bool passesPreselection(const susybsm::HSCParticle& hscp,  const reco::DeDxData& dedxSObj,
     const reco::DeDxData& dedxMObj, const reco::MuonTimeExtra* tof,
     const reco::MuonTimeExtra* dttof, const reco::MuonTimeExtra* csctof,
-    const fwlite::Event& ev, bool considerToF, PlotStruct preselPlots)
+    const fwlite::Event& ev, bool considerToF, bool is8TeV,
+    PlotStruct preselPlots)
 {
 
   //TODO: use common py for these
@@ -244,14 +309,14 @@ bool passesPreselection(const susybsm::HSCParticle& hscp,  const reco::DeDxData&
   const int minTrackNoH = 11;
   const float minTrackValidFraction = 0.8;
   const int minValidPixelHits = 2;
-  const unsigned int minIasNoM = 5;
-  const unsigned int minIhNoM = 5;
+  const unsigned int minIasNoM = 6;
+  const unsigned int minIhNoM = 6;
   const int minTofNdof = 8;
   const int minTofNdofDt = 6;
   const int minTofNdofCsc = 6;
   const int minTrackQualityMask = 2;
   const float maxTrackChi2OverNdf = 5.0;
-  //const float minTrackPt = 35.0;
+  //const float minTrackPt = 45.0;
   //const float minIas = 0.0;
   //const float minIh = 3.0;
   const float minTofInvBeta = 1.0;
@@ -261,7 +326,11 @@ bool passesPreselection(const susybsm::HSCParticle& hscp,  const reco::DeDxData&
   const float maxTrackEtIso = 50;
   const float maxCalEOverPIso = 0.3;
   const float maxTrackPtErr = 0.25;
-  const float maxTrackEta = 2.5;
+  const float maxTrackEta = 1.5;
+
+  const unsigned int minIasNoM_7TeV = 5;
+  const unsigned int minIhNoM_7TeV = 5;
+  const float maxTrackEta_7TeV = 2.5; 
 
   reco::TrackRef track = hscp.trackRef();
   if(track.isNull())
@@ -269,7 +338,9 @@ bool passesPreselection(const susybsm::HSCParticle& hscp,  const reco::DeDxData&
 
   preselPlots.tracksVsPreselectionsHist->Fill(0.5);
   // track
-  if(dedxMObj.numberOfMeasurements() < minIhNoM)
+  if(is8TeV && dedxMObj.numberOfMeasurements() < minIhNoM)
+    return false;
+  if(!is8TeV && dedxMObj.numberOfMeasurements() < minIhNoM_7TeV)
     return false;
   preselPlots.tracksVsPreselectionsHist->Fill(1.5);
   if(track->found() < minTrackNoH)
@@ -281,7 +352,9 @@ bool passesPreselection(const susybsm::HSCParticle& hscp,  const reco::DeDxData&
   if(track->hitPattern().numberOfValidPixelHits() < minValidPixelHits)
     return false;
   preselPlots.tracksVsPreselectionsHist->Fill(4.5);
-  if(dedxSObj.numberOfMeasurements() < minIasNoM)
+  if(is8TeV && dedxSObj.numberOfMeasurements() < minIasNoM)
+    return false;
+  if(!is8TeV && dedxSObj.numberOfMeasurements() < minIasNoM_7TeV)
     return false;
   preselPlots.tracksVsPreselectionsHist->Fill(5.5);
   if(track->qualityMask() < minTrackQualityMask)
@@ -290,7 +363,9 @@ bool passesPreselection(const susybsm::HSCParticle& hscp,  const reco::DeDxData&
   if(track->chi2()/track->ndof() > maxTrackChi2OverNdf)
     return false;
   preselPlots.tracksVsPreselectionsHist->Fill(7.5);
-  if(fabs(track->eta()) > maxTrackEta)
+  if(is8TeV && fabs(track->eta()) > maxTrackEta)
+    return false;
+  if(!is8TeV && fabs(track->eta()) > maxTrackEta_7TeV)
     return false;
   preselPlots.tracksVsPreselectionsHist->Fill(8.5);
   // ptError
@@ -468,21 +543,35 @@ int GetInitialNumberOfMCEvent(const vector<string>& fileNames)
 }
 
 // taken from Analysis_Step234.C
-bool passesTrigger(const fwlite::Event& ev, bool considerMuon = true, bool considerMET = true)
+bool passesTrigger(const fwlite::Event& ev, bool considerMuon = true, bool considerMET = true, bool is8TeV = true)
 {
-      edm::TriggerResultsByName tr = ev.triggerResultsByName("MergeHLT");
-      if(!tr.isValid())return false;
+  if(!is8TeV)
+  {
+    edm::TriggerResultsByName tr = ev.triggerResultsByName("MergeHLT");
+    if(!tr.isValid())return false;
 
-      if(considerMuon)
-      {
-        if(tr.accept(tr.triggerIndex("HscpPathSingleMu")))return true;
-//      if(tr.accept(tr.triggerIndex("HscpPathDoubleMu")))return true;
-      }
-      if(considerMET)
-      {
-        if(tr.accept(tr.triggerIndex("HscpPathPFMet")))return true;
-//      if(tr.accept(tr.triggerIndex("HscpPathCaloMet")))return true;
-      }
-      return false;
+    if(considerMuon)
+    {
+      if(tr.accept(tr.triggerIndex("HscpPathSingleMu")))return true;
+//    if(tr.accept(tr.triggerIndex("HscpPathDoubleMu")))return true;
+    }
+    if(considerMET)
+    {
+      if(tr.accept(tr.triggerIndex("HscpPathPFMet")))return true;
+//    if(tr.accept(tr.triggerIndex("HscpPathCaloMet")))return true;
+    }
+    return false;
+  }
+  else
+  {
+    edm::TriggerResultsByName tr = ev.triggerResultsByName("MergeHLT");
+    if(!tr.isValid())return false;
+
+    if(tr.accept("HSCPHLTTriggerMetDeDxFilter"))return true;
+    if(tr.accept("HSCPHLTTriggerMuDeDxFilter"))return true;
+    if(tr.accept("HSCPHLTTriggerMuFilter"))return true;
+
+    return false;
+      
+  }
 }
-

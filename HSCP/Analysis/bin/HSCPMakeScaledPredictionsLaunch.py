@@ -150,10 +150,10 @@ def CreateTheShellFile(bgInputFile,sigLooseInputFile,sigTightInputFile,modelName
     shell_file.write(CopyRights + '\n')
     # UMN
     if(Condor):
-      shell_file.write('source /local/cms/sw/cmsset_default.sh\n')
+      shell_file.write('source /local/cms/sw/cmsset_CMSSW5X.sh\n')
     else:
       # CERN
-      shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc434\n')
+      shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc462\n')
       shell_file.write('source /afs/cern.ch/cms/sw/cmsset_default.sh\n')
     shell_file.write('cd ' + os.getcwd() + '\n')
     shell_file.write('eval `scramv1 runtime -sh`\n')
@@ -166,7 +166,7 @@ def CreateTheShellFile(bgInputFile,sigLooseInputFile,sigTightInputFile,modelName
     shell_file.write('# switch to later root\n')
     # UMN
     if(Condor):
-      shell_file.write('source /local/cms/user/cooper/root/bin/thisroot.sh\n')
+      shell_file.write('source /local/cms/user/turkewitz/root/bin/thisroot.sh\n')
     else:
       # CERN
       shell_file.write('source /afs/cern.ch/sw/lcg/external/gcc/4.3.2/x86_64-slc5/setup.sh\n')
@@ -208,7 +208,7 @@ def CreateTheCmdFile():
       cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="caffeine.spa.umn.edu")\n')
       cmd_file.write('+CondorGroup            = "cmsfarm"\n')
       cmd_file.write('should_transfer_files   = NO\n')
-      cmd_file.write('Notify_user = cooper@physics.umn.edu\n')
+      cmd_file.write('Notify_user = turkewitz@physics.umn.edu\n')
       #cmd_file.write('should_transfer_files   = YES\n')
       #cmd_file.write('when_to_transfer_output = ON_EXIT\n')
     else:

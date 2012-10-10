@@ -20,6 +20,7 @@ process.makeHSCParticlePlots = cms.PSet(
     ScaleFactor = cms.double(1),
     MatchToHSCP = cms.bool(XXX_ISHSCP_XXX),
     IsMC = cms.bool(XXX_ISMC_XXX),
+    Is8TeV = cms.bool(XXX_IS8TEV_XXX),
     MassCut = cms.double(XXX_MASSCUT_XXX),
     SignalEventCrossSection = cms.double(XXX_CROSSSECTION_XXX), #NLO, pb
     IntegratedLumi = cms.double(XXX_INTEGRATEDLUMI_XXX),

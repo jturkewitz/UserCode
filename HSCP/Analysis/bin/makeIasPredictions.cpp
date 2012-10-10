@@ -1196,7 +1196,7 @@ int main(int argc, char ** argv)
       {
         double expVal = myExp->Eval(iasPredictionFixedLimitsHist->GetBinCenter(bin));
         double absErr = sqrt(expVal);
-        if(std::isnan(absErr) && expVal < emptyBinVal)
+        if(isnan((float)absErr) && expVal < emptyBinVal)
         {
           iasPredictionFixedLimitsHist->SetBinContent(bin,emptyBinVal);
           iasPredictionFixedLimitsHist->SetBinError(bin,sqrt(emptyBinVal));
@@ -1227,7 +1227,7 @@ int main(int argc, char ** argv)
       {
         double expVal = myExpPlusOneSigma->Eval(iasPredictionFixedLimitsHist->GetBinCenter(bin));
         double absErr = sqrt(expVal);
-        if(std::isnan(absErr) && expVal < emptyBinVal)
+        if(isnan((float)absErr) && expVal < emptyBinVal)
         {
           iasPredictionFixedSlopeAddOneSigmaLimitsHist->SetBinContent(bin,emptyBinVal);
           iasPredictionFixedSlopeAddOneSigmaLimitsHist->SetBinError(bin,sqrt(emptyBinVal));
@@ -1248,7 +1248,7 @@ int main(int argc, char ** argv)
       {
         double expVal = myExpMinusOneSigma->Eval(iasPredictionFixedLimitsHist->GetBinCenter(bin));
         double absErr = sqrt(expVal);
-        if(std::isnan(absErr) && expVal < emptyBinVal)
+        if(isnan((float)absErr) && expVal < emptyBinVal)
         {
           iasPredictionFixedSlopeMinusOneSigmaLimitsHist->SetBinContent(bin,emptyBinVal);
           iasPredictionFixedSlopeMinusOneSigmaLimitsHist->SetBinError(bin,sqrt(emptyBinVal));
@@ -1269,7 +1269,7 @@ int main(int argc, char ** argv)
       {
         double expVal = myExpPlusOneSigma->Eval(iasPredictionFixedDiscoveryHist->GetBinCenter(bin));
         double absErr = sqrt(expVal);
-        if(std::isnan(absErr) && expVal < emptyBinVal)
+        if(isnan((float)absErr) && expVal < emptyBinVal)
         {
           iasPredictionFixedSlopeAddOneSigmaDiscoveryHist->SetBinContent(bin,emptyBinVal);
           iasPredictionFixedSlopeAddOneSigmaDiscoveryHist->SetBinError(bin,sqrt(emptyBinVal));
@@ -1290,7 +1290,7 @@ int main(int argc, char ** argv)
       {
         double expVal = myExpMinusOneSigma->Eval(iasPredictionFixedDiscoveryHist->GetBinCenter(bin));
         double absErr = sqrt(expVal);
-        if(std::isnan(absErr) && expVal < emptyBinVal)
+        if(isnan((float)absErr) && expVal < emptyBinVal)
         {
           iasPredictionFixedSlopeMinusOneSigmaDiscoveryHist->SetBinContent(bin,emptyBinVal);
           iasPredictionFixedSlopeMinusOneSigmaDiscoveryHist->SetBinError(bin,sqrt(emptyBinVal));

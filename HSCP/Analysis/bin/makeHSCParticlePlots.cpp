@@ -35,13 +35,17 @@ namespace reco    { class Vertex; class Track; class GenParticle; class DeDxData
 namespace susybsm { class HSCParticle; class HSCPIsolation;}
 namespace fwlite  { class ChainEvent;}
 namespace trigger { class TriggerEvent;}
-namespace edm     {class TriggerResults; class TriggerResultsByName; class InputTag;}
+namespace edm     {class TriggerResults; class TriggerResultsByName; class InputTag; class LumiReWeighting;}
+namespace reweight{class PoissonMeanShifter;}
 
 #include "DataFormats/FWLite/interface/Handle.h"
 #include "DataFormats/FWLite/interface/Event.h"
 #include "DataFormats/FWLite/interface/ChainEvent.h"
 #include "DataFormats/FWLite/interface/InputSource.h"
 #include "DataFormats/FWLite/interface/OutputFiles.h"
+#include "DataFormats/Common/interface/MergeableCounter.h"
+#include "DataFormats/Common/interface/RefCore.h"
+#include "DataFormats/Common/interface/RefCoreWithIndex.h"
 
 #include "PhysicsTools/FWLite/interface/CommandLineParser.h"
 #include "FWCore/ParameterSet/interface/ProcessDesc.h"
@@ -283,6 +287,7 @@ int main(int argc, char ** argv)
   double pSidebandThreshold_ (ana.getParameter<double>("PSidebandThreshold"));
   double ihSidebandThreshold_ (ana.getParameter<double>("IhSidebandThreshold"));
   bool matchToHSCP_ (ana.getParameter<bool>("MatchToHSCP"));
+  bool is8TeV_ (ana.getParameter<bool>("Is8TeV"));
   bool isMC_ (ana.getParameter<bool>("IsMC"));
   double signalEventCrossSection_ (ana.getParameter<double>("SignalEventCrossSection")); // pb
   double integratedLumi_ (ana.getParameter<double>("IntegratedLumi"));
@@ -290,6 +295,41 @@ int main(int argc, char ** argv)
 
   // fileService initialization
   fwlite::TFileService fs = fwlite::TFileService(outputHandler_.file().c_str());
+  TH1F* pDistributionHist = fs.make<TH1F>("pDistribution","P;GeV",200,0,2000);
+  pDistributionHist->Sumw2();
+  TH1F* ptDistributionHist = fs.make<TH1F>("ptDistribution","Pt;GeV",200,0,2000);
+  ptDistributionHist->Sumw2();
+  // p vs Ias
+  TH2F* pVsIasDistributionHist;
+  std::string pVsIasName = "trackPvsIas";
+  std::string pVsIasTitle="Track P vs ias";
+  pVsIasTitle+=";;GeV";
+  pVsIasDistributionHist = fs.make<TH2F>(pVsIasName.c_str(),pVsIasTitle.c_str(),400,0,1,100,0,1000);
+  pVsIasDistributionHist->Sumw2();
+  // p vs Ih
+  TH2F* pVsIhDistributionHist;
+  std::string pVsIhName = "trackPvsIh";
+  std::string pVsIhTitle="Track P vs ih";
+  pVsIhTitle+=";MeV/cm;GeV";
+  pVsIhDistributionHist = fs.make<TH2F>(pVsIhName.c_str(),pVsIhTitle.c_str(),400,0,10,100,0,1000);
+  pVsIhDistributionHist->Sumw2();
+  // p vs Ias
+  TH2F* pVsIasHist = fs.make<TH2F>("pVsIas","P vs Ias (SearchRegion+MassCut);;GeV",20,0,1,40,0,1000);
+  pVsIasHist->Sumw2();
+  TH2F* trackEtaVsPHist = fs.make<TH2F>("trackEtaVsP","Track #eta vs. p (SearchRegion+MassCut);GeV",4000,0,2000,24,0,2.4);
+  trackEtaVsPHist->Sumw2();
+  // search region (only filled for MC)
+//  TH1F* pDistributionSearchRegionHist = fs.make<TH1F>("pDistributionSearchRegion","SearchRegion+MassCutP;GeV",200,0,2000);
+//  pDistributionSearchRegionHist->Sumw2();
+//  TH1F* ptDistributionSearchRegionHist = fs.make<TH1F>("ptDistributionSearchRegion","SearchRegion+MassCutPt;GeV",200,0,2000);
+//  ptDistributionSearchRegionHist->Sumw2();
+//  // p vs Ias
+//  TH2F* pVsIasDistributionSearchRegionHist;
+//  std::string pVsIasSearchRegionName = "trackPvsIasSearchRegion";
+//  std::string pVsIasSearchRegionTitle="Track P vs ias (SearchRegion+MassCut)";
+//  pVsIasSearchRegionTitle+=";;GeV";
+//  pVsIasDistributionSearchRegionHist = fs.make<TH2F>(pVsIasSearchRegionName.c_str(),pVsIasSearchRegionTitle.c_str(),400,0,1,100,0,1000);
+//  pVsIasDistributionSearchRegionHist->Sumw2();
   // p vs Ih - SR
   TH2F* pVsIhDistributionSearchRegionHist;
   std::string pVsIhSearchRegionName = "trackPvsIhSearchRegion";
@@ -309,6 +349,129 @@ int main(int argc, char ** argv)
   pVsIasSearchRegionHist->Sumw2();
   TH2F* trackEtaVsPSearchRegionHist = fs.make<TH2F>("trackEtaVsPSearchRegion","Track #eta vs. p (SearchRegion+MassCut);GeV",4000,0,2000,24,0,2.4);
   trackEtaVsPSearchRegionHist->Sumw2();
+  // ias NoM
+  TH1F* iasNoMHist = fs.make<TH1F>("iasNoM","NoM (ias)",50,0,50);
+  // ias NoM -- proton
+  TH1F* iasNoMProtonHist = fs.make<TH1F>("iasNoMProton","NoM proton mass cut (ias)",50,0,50);
+  // ias NoM - no preselection
+  TH1F* iasNoMNoPreselHist = fs.make<TH1F>("iasNoMNoPresel","NoM no preselection (ias)",50,0,50);
+  // ias NoM - no preselection, proton mass cut
+  TH1F* iasNoMNoPreselProtonHist = fs.make<TH1F>("iasNoMNoPreselProton","NoM no preselection, proton mass cut (ias)",50,0,50);
+  // ToF SB - p vs Ias
+  TH2F* pVsIasToFSBHist;
+  std::string pVsIasToFSBName = "trackPvsIasToFSB";
+  std::string pVsIasToFSBTitle="Track P vs ias (ToF SB: #beta>1.075)";
+  pVsIasToFSBTitle+=";;GeV";
+  pVsIasToFSBHist = fs.make<TH2F>(pVsIasToFSBName.c_str(),pVsIasToFSBTitle.c_str(),400,0,1,100,0,1000);
+  pVsIasToFSBHist->Sumw2();
+  // ToF SB - p vs Ih
+  TH2F* pVsIhToFSBHist;
+  std::string pVsIhToFSBName = "trackPvsIhToFSB";
+  std::string pVsIhToFSBTitle="Track P vs ih (ToF SB: #beta>1.075)";
+  pVsIhToFSBTitle+=";MeV/cm;GeV";
+  pVsIhToFSBHist = fs.make<TH2F>(pVsIhToFSBName.c_str(),pVsIhToFSBTitle.c_str(),400,0,10,100,0,1000);
+  pVsIhToFSBHist->Sumw2();
+  // Ih vs Ias
+  TH2F* ihVsIasHist = fs.make<TH2F>("ihVsIas","Ih vs. Ias;;MeV/cm",400,0,1,400,0,10);
+  ihVsIasHist->Sumw2();
+  // p vs NoM
+  TH2F* pVsNoMHist = fs.make<TH2F>("pVsNoM","Track P vs. NoM (Ias);;GeV",50,0,50,100,0,1000);
+  // p vs NoM, central eta only
+  TH2F* pVsNoMCentralEtaHist = fs.make<TH2F>("pVsNoMCentralEta","Track P vs. NoM (Ias), |#eta| < 0.9;;GeV",50,0,50,100,0,1000);
+  // p vs NoM, eta slices
+  TH2F* pVsNoMEtaSlice1Hist = fs.make<TH2F>("pVsNoMEtaSlice1","Track P vs. NoM (Ias), |#eta| < 0.2;;GeV",50,0,50,100,0,1000);
+  TH2F* pVsNoMEtaSlice2Hist = fs.make<TH2F>("pVsNoMEtaSlice2","Track P vs. NoM (Ias), 0.2 < |#eta| < 0.4;;GeV",50,0,50,100,0,1000);
+  TH2F* pVsNoMEtaSlice3Hist = fs.make<TH2F>("pVsNoMEtaSlice3","Track P vs. NoM (Ias), 0.4 < |#eta| < 0.6;;GeV",50,0,50,100,0,1000);
+  TH2F* pVsNoMEtaSlice4Hist = fs.make<TH2F>("pVsNoMEtaSlice4","Track P vs. NoM (Ias), 0.6 < |#eta| < 0.8;;GeV",50,0,50,100,0,1000);
+  TH2F* pVsNoMEtaSlice5Hist = fs.make<TH2F>("pVsNoMEtaSlice5","Track P vs. NoM (Ias), 0.8 < |#eta| < 1.0;;GeV",50,0,50,100,0,1000);
+  TH2F* pVsNoMEtaSlice6Hist = fs.make<TH2F>("pVsNoMEtaSlice6","Track P vs. NoM (Ias), 1.0 < |#eta| < 1.2;;GeV",50,0,50,100,0,1000);
+  TH2F* pVsNoMEtaSlice7Hist = fs.make<TH2F>("pVsNoMEtaSlice7","Track P vs. NoM (Ias), 1.2 < |#eta| < 1.4;;GeV",50,0,50,100,0,1000);
+  TH2F* pVsNoMEtaSlice8Hist = fs.make<TH2F>("pVsNoMEtaSlice8","Track P vs. NoM (Ias), 1.4 < |#eta| < 1.6;;GeV",50,0,50,100,0,1000);
+  //
+  // ih vs. p in eta slices
+  TH2F* ihVsPEtaSlice1Hist = fs.make<TH2F>("ihVsPEtaSlice1","Ih vs. p, |#eta| < 0.2;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPEtaSlice2Hist = fs.make<TH2F>("ihVsPEtaSlice2","Ih vs. p, 0.2 < |#eta| < 0.4;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPEtaSlice3Hist = fs.make<TH2F>("ihVsPEtaSlice3","Ih vs. p, 0.4 < |#eta| < 0.6;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPEtaSlice4Hist = fs.make<TH2F>("ihVsPEtaSlice4","Ih vs. p, 0.6 < |#eta| < 0.8;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPEtaSlice5Hist = fs.make<TH2F>("ihVsPEtaSlice5","Ih vs. p, 0.8 < |#eta| < 1.0;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPEtaSlice6Hist = fs.make<TH2F>("ihVsPEtaSlice6","Ih vs. p, 1.0 < |#eta| < 1.2;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPEtaSlice7Hist = fs.make<TH2F>("ihVsPEtaSlice7","Ih vs. p, 1.2 < |#eta| < 1.4;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPEtaSlice8Hist = fs.make<TH2F>("ihVsPEtaSlice8","Ih vs. p, 1.4 < |#eta| < 1.6;GeV;MeV/cm",100,0,4,200,0,20);
+  // ias  vs. p in eta slices
+  TH2F* iasVsPEtaSlice1Hist = fs.make<TH2F>("iasVsPEtaSlice1","Ias vs. p, |#eta| < 0.2;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPEtaSlice2Hist = fs.make<TH2F>("iasVsPEtaSlice2","Ias vs. p, 0.2 < |#eta| < 0.4;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPEtaSlice3Hist = fs.make<TH2F>("iasVsPEtaSlice3","Ias vs. p, 0.4 < |#eta| < 0.6;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPEtaSlice4Hist = fs.make<TH2F>("iasVsPEtaSlice4","Ias vs. p, 0.6 < |#eta| < 0.8;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPEtaSlice5Hist = fs.make<TH2F>("iasVsPEtaSlice5","Ias vs. p, 0.8 < |#eta| < 1.0;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPEtaSlice6Hist = fs.make<TH2F>("iasVsPEtaSlice6","Ias vs. p, 1.0 < |#eta| < 1.2;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPEtaSlice7Hist = fs.make<TH2F>("iasVsPEtaSlice7","Ias vs. p, 1.2 < |#eta| < 1.4;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPEtaSlice8Hist = fs.make<TH2F>("iasVsPEtaSlice8","Ias vs. p, 1.4 < |#eta| < 1.6;GeV;MeV/cm",100,0,4,100,0,1);
+  // ih vs. p in nom slices
+  TH2F* ihVsPNoMSlice1Hist = fs.make<TH2F>("ihVsPNoMSlice1","Ih vs. p, NoM 5-6;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPNoMSlice2Hist = fs.make<TH2F>("ihVsPNoMSlice2","Ih vs. p, NoM 7-8;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPNoMSlice3Hist = fs.make<TH2F>("ihVsPNoMSlice3","Ih vs. p, NoM 9-10;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPNoMSlice4Hist = fs.make<TH2F>("ihVsPNoMSlice4","Ih vs. p, NoM 11-12;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPNoMSlice5Hist = fs.make<TH2F>("ihVsPNoMSlice5","Ih vs. p, NoM 13-14;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPNoMSlice6Hist = fs.make<TH2F>("ihVsPNoMSlice6","Ih vs. p, NoM 15-16;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPNoMSlice7Hist = fs.make<TH2F>("ihVsPNoMSlice7","Ih vs. p, NoM 17-18;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPNoMSlice8Hist = fs.make<TH2F>("ihVsPNoMSlice8","Ih vs. p, NoM 19-20;GeV;MeV/cm",100,0,4,200,0,20);
+  // ias  vs. p in nom slices
+  TH2F* iasVsPNoMSlice1Hist = fs.make<TH2F>("iasVsPNoMSlice1","Ias vs. p, NoM 5-6;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPNoMSlice2Hist = fs.make<TH2F>("iasVsPNoMSlice2","Ias vs. p, NoM 7-8;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPNoMSlice3Hist = fs.make<TH2F>("iasVsPNoMSlice3","Ias vs. p, NoM 9-10;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPNoMSlice4Hist = fs.make<TH2F>("iasVsPNoMSlice4","Ias vs. p, NoM 11-12;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPNoMSlice5Hist = fs.make<TH2F>("iasVsPNoMSlice5","Ias vs. p, NoM 13-14;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPNoMSlice6Hist = fs.make<TH2F>("iasVsPNoMSlice6","Ias vs. p, NoM 15-16;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPNoMSlice7Hist = fs.make<TH2F>("iasVsPNoMSlice7","Ias vs. p, NoM 17-18;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPNoMSlice8Hist = fs.make<TH2F>("iasVsPNoMSlice8","Ias vs. p, NoM 19-20;GeV;MeV/cm",100,0,4,100,0,1);
+  // ih vs. p in eta slices -- proton mass only
+  TH2F* ihVsPProtonEtaSlice1Hist = fs.make<TH2F>("ihVsPProtonEtaSlice1","Ih vs. p, proton mass cut, |#eta| < 0.2;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonEtaSlice2Hist = fs.make<TH2F>("ihVsPProtonEtaSlice2","Ih vs. p, proton mass cut, 0.2 < |#eta| < 0.4;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonEtaSlice3Hist = fs.make<TH2F>("ihVsPProtonEtaSlice3","Ih vs. p, proton mass cut, 0.4 < |#eta| < 0.6;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonEtaSlice4Hist = fs.make<TH2F>("ihVsPProtonEtaSlice4","Ih vs. p, proton mass cut, 0.6 < |#eta| < 0.8;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonEtaSlice5Hist = fs.make<TH2F>("ihVsPProtonEtaSlice5","Ih vs. p, proton mass cut, 0.8 < |#eta| < 1.0;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonEtaSlice6Hist = fs.make<TH2F>("ihVsPProtonEtaSlice6","Ih vs. p, proton mass cut, 1.0 < |#eta| < 1.2;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonEtaSlice7Hist = fs.make<TH2F>("ihVsPProtonEtaSlice7","Ih vs. p, proton mass cut, 1.2 < |#eta| < 1.4;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonEtaSlice8Hist = fs.make<TH2F>("ihVsPProtonEtaSlice8","Ih vs. p, proton mass cut, 1.4 < |#eta| < 1.6;GeV;MeV/cm",100,0,4,200,0,20);
+  // ias  vs. p in eta slices -- proton mass only
+  TH2F* iasVsPProtonEtaSlice1Hist = fs.make<TH2F>("iasVsPProtonEtaSlice1","Ias vs. p, proton mass cut, |#eta| < 0.2;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonEtaSlice2Hist = fs.make<TH2F>("iasVsPProtonEtaSlice2","Ias vs. p, proton mass cut, 0.2 < |#eta| < 0.4;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonEtaSlice3Hist = fs.make<TH2F>("iasVsPProtonEtaSlice3","Ias vs. p, proton mass cut, 0.4 < |#eta| < 0.6;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonEtaSlice4Hist = fs.make<TH2F>("iasVsPProtonEtaSlice4","Ias vs. p, proton mass cut, 0.6 < |#eta| < 0.8;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonEtaSlice5Hist = fs.make<TH2F>("iasVsPProtonEtaSlice5","Ias vs. p, proton mass cut, 0.8 < |#eta| < 1.0;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonEtaSlice6Hist = fs.make<TH2F>("iasVsPProtonEtaSlice6","Ias vs. p, proton mass cut, 1.0 < |#eta| < 1.2;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonEtaSlice7Hist = fs.make<TH2F>("iasVsPProtonEtaSlice7","Ias vs. p, proton mass cut, 1.2 < |#eta| < 1.4;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonEtaSlice8Hist = fs.make<TH2F>("iasVsPProtonEtaSlice8","Ias vs. p, proton mass cut, 1.4 < |#eta| < 1.6;GeV;MeV/cm",100,0,4,100,0,1);
+  // ih vs. p in nom slices -- proton mass only
+  TH2F* ihVsPProtonNoMSlice1Hist = fs.make<TH2F>("ihVsPProtonNoMSlice1","Ih vs. p, proton mass cut, NoM 5-6;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonNoMSlice2Hist = fs.make<TH2F>("ihVsPProtonNoMSlice2","Ih vs. p, proton mass cut, NoM 7-8;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonNoMSlice3Hist = fs.make<TH2F>("ihVsPProtonNoMSlice3","Ih vs. p, proton mass cut, NoM 9-10;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonNoMSlice4Hist = fs.make<TH2F>("ihVsPProtonNoMSlice4","Ih vs. p, proton mass cut, NoM 11-12;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonNoMSlice5Hist = fs.make<TH2F>("ihVsPProtonNoMSlice5","Ih vs. p, proton mass cut, NoM 13-14;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonNoMSlice6Hist = fs.make<TH2F>("ihVsPProtonNoMSlice6","Ih vs. p, proton mass cut, NoM 15-16;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonNoMSlice7Hist = fs.make<TH2F>("ihVsPProtonNoMSlice7","Ih vs. p, proton mass cut, NoM 17-18;GeV;MeV/cm",100,0,4,200,0,20);
+  TH2F* ihVsPProtonNoMSlice8Hist = fs.make<TH2F>("ihVsPProtonNoMSlice8","Ih vs. p, proton mass cut, NoM 19-20;GeV;MeV/cm",100,0,4,200,0,20);
+  // ias  vs. p in nom slices -- proton mass only
+  TH2F* iasVsPProtonNoMSlice1Hist = fs.make<TH2F>("iasVsPProtonNoMSlice1","Ias vs. p, proton mass cut, NoM 5-6;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonNoMSlice2Hist = fs.make<TH2F>("iasVsPProtonNoMSlice2","Ias vs. p, proton mass cut, NoM 7-8;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonNoMSlice3Hist = fs.make<TH2F>("iasVsPProtonNoMSlice3","Ias vs. p, proton mass cut, NoM 9-10;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonNoMSlice4Hist = fs.make<TH2F>("iasVsPProtonNoMSlice4","Ias vs. p, proton mass cut, NoM 11-12;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonNoMSlice5Hist = fs.make<TH2F>("iasVsPProtonNoMSlice5","Ias vs. p, proton mass cut, NoM 13-14;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonNoMSlice6Hist = fs.make<TH2F>("iasVsPProtonNoMSlice6","Ias vs. p, proton mass cut, NoM 15-16;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonNoMSlice7Hist = fs.make<TH2F>("iasVsPProtonNoMSlice7","Ias vs. p, proton mass cut, NoM 17-18;GeV;MeV/cm",100,0,4,100,0,1);
+  TH2F* iasVsPProtonNoMSlice8Hist = fs.make<TH2F>("iasVsPProtonNoMSlice8","Ias vs. p, proton mass cut, NoM 19-20;GeV;MeV/cm",100,0,4,100,0,1);
+  // NoH vs NoM
+  TH2F* nohVsNoMHist = fs.make<TH2F>("nohVsNoM","Number of hits vs. NoM (Ias);NoM;NoH",50,0,50,50,0,50);
+  // NoH vs NoM, central eta
+  TH2F* nohVsNoMCentralEtaHist = fs.make<TH2F>("nohVsNoMCentral","Number of hits vs. NoM (Ias), |#eta| < 0.9;NoM;NoH",50,0,50,50,0,50);
+  // p vs NoH
+  TH2F* pVsNoHHist = fs.make<TH2F>("pVsNoH","Track P vs. NoH;;GeV",50,0,50,100,0,1000);
+  // p vs NoH, central eta only
+  TH2F* pVsNoHCentralEtaHist = fs.make<TH2F>("pVsNoHCentralEta","Track P vs. NoH, |#eta| < 0.9;;GeV",50,0,50,100,0,1000);
+  // p vs relPerr
+  TH2F* pVsRelPerrHist = fs.make<TH2F>("pVsRelPerr","Track P vs. #Deltap/p;;GeV",100,0,1,100,0,1000);
+  // p vs relPerr, central eta only
+  TH2F* pVsRelPerrCentralEtaHist = fs.make<TH2F>("pVsRelPerrCentralEta","Track P vs. #Deltap/p, |#eta| < 0.9;;GeV",100,0,1,100,0,1000);
   // num hscp gen per event
   TH1F* numHSCPGenPerEventHist = fs.make<TH1F>("numHSCPGenPerEvent","Number of gen HSCPs per event",4,0,4);
   // num hscp seen per event
@@ -322,6 +485,14 @@ int main(int argc, char ** argv)
   // num tracks passing presel in C region per event
   TH1F* numTracksPassingPreselCRegionPerEventHist = fs.make<TH1F>("numTracksPassingPreselCRegionPerEventHist",
       "Tracks passing preselection in C region per event",10,0,10);
+  // HSCP eta
+  TH1F* hscpEtaHist = fs.make<TH1F>("hscpEtaHist","#eta (matched to HSCP)",60,-3,3);
+  // nom c region
+  TH1F* nomCRegionHist = fs.make<TH1F>("nomCRegionHist","NoM C region (ias < 0.1)",16,5,21);
+  // eta c region
+  TH1F* etaCRegionHist = fs.make<TH1F>("etaCRegionHist","Eta C region (ias < 0.1);#eta",60,-3,3);
+  // pt c region
+  TH1F* ptCRegionHist = fs.make<TH1F>("ptCRegionHist","Pt C region (ias < 0.1);GeV",200,0,2000);
   // search region (only filled for MC)
   TH1F* pDistributionSearchRegionHist = fs.make<TH1F>("pDistributionSearchRegion","SearchRegion+MassCutP;GeV",200,0,2000);
   pDistributionSearchRegionHist->Sumw2();
@@ -447,8 +618,10 @@ int main(int argc, char ** argv)
   {
     for(unsigned int iFile=0; iFile<inputHandler_.files().size(); ++iFile)
     {
+      std::cout << "Point A0" << std::endl;
       // open input file (can be located on castor)
       TFile* inFile = TFile::Open(inputHandler_.files()[iFile].c_str());
+      std::cout << "Point A1" << std::endl;
       if( inFile )
       {
         if(inputHandler_.files()[iFile].find("BX1") != string::npos)
@@ -602,7 +775,9 @@ int main(int argc, char ** argv)
         std::vector<reco::GenParticle> genColl;
         if(isMC_)
         {
+          std::cout << "Point A" << std::endl;
           genCollHandle.getByLabel(ev, "genParticles");
+          std::cout << "Point B" << std::endl;
           if(!genCollHandle.isValid()){printf("GenParticle Collection NotFound\n");continue;}
           genColl = *genCollHandle;
             // Get PU Weight
@@ -744,14 +919,14 @@ int main(int argc, char ** argv)
           }
 
           // check triggers
-          if(passesTrigger(ev,true,false)) // consider mu trig only
+          if(passesTrigger(ev,true,false,is8TeV_)) // consider mu trig only
           {
             if(numSeenHSCPThisEvt==1)
               numEventsWithOneHSCPSeenMuonTrigger++;
             if(numSeenHSCPThisEvt==2)
               numEventsWithTwoHSCPSeenMuonTrigger++;
           }
-          if(passesTrigger(ev,false,true)) // consider MET trig only
+          if(passesTrigger(ev,false,true,is8TeV_)) // consider MET trig only
           {
             if(numSeenHSCPThisEvt==1)
               numEventsWithOneHSCPSeenMetTrigger++;
@@ -765,12 +940,9 @@ int main(int argc, char ** argv)
         double lumiSection = ev.id().luminosityBlock();
         double runNumber = ev.id().run();
         double eventNumber = ev.id().event();
-        std::cout << "Point A0" << std::endl;
         // check trigger
-        if(!passesTrigger(ev))
-          std::cout << "Point A" << std::endl;
+        if(!passesTrigger(ev,true,true,is8TeV_))
           continue;
-        std::cout << "Point A1" << std::endl;
 
         numEventsPassingTrigger++;
 
@@ -818,9 +990,19 @@ int main(int argc, char ** argv)
           float trackEta = track->eta();
           int trackNoH = track->found();
           float trackPtErr = track->ptError();
+          
+          // fill ias before preselection
+          iasNoMNoPreselHist->Fill(iasNoM);
+          // mass
+          float massSqr = (ih-dEdx_c_)*pow(trackP,2)/dEdx_k_;
+          float mass = (massSqr >= 0) ? sqrt(massSqr) : 0;
+          // proton mass
+          bool isProtonMass = (mass < 1.5 && mass > 0.65) ? true : false;
+          if(isProtonMass)
+            iasNoMNoPreselProtonHist->Fill(iasNoM);
 
           // apply preselections, not considering ToF
-          if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,beforePreselectionPlots))
+          if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,is8TeV_,beforePreselectionPlots))
             continue;
 
           // systematics datasets for MC
@@ -834,6 +1016,13 @@ int main(int argc, char ** argv)
           {
             TRandom3 myRandom;
             // include TOF at some point?
+            //rooVarIas = ias;
+            //rooVarIp = ip;
+            //rooVarIh = ih;
+            //rooVarP = trackP;
+            //rooVarPt = trackPt;
+            //rooVarNoMias = iasNoM;
+            //rooVarEta = fabs(trackEta);
             double beta = trackP/sqrt(pow(trackP,2)+pow(genMass,2));
             // ias shift
             //shiftedIas = ias + myRandom.Gaus(0,0.083) + 0.015; // from YK results Nov 21 2011 hypernews thread
@@ -854,7 +1043,7 @@ int main(int argc, char ** argv)
           if(isMC_)
           {
             ptVsIasHist->Fill(ias,trackPt);
-            float massSqr = (ih-dEdx_c_)*pow(trackP,2)/dEdx_k_;
+//            float massSqr = (ih-dEdx_c_)*pow(trackP,2)/dEdx_k_;
             if(sqrt(massSqr) >= massCutIasHighPHighIh_)
             {
               ptVsIasMassCutHist->Fill(ias,trackPt);
@@ -885,7 +1074,6 @@ int main(int argc, char ** argv)
             numTracksInSearchRegion++;
             if(isMC_)
             {
-              float massSqr = (ih-dEdx_c_)*pow(trackP,2)/dEdx_k_;
               if(massSqr < 0)
                 continue;
               else if(sqrt(massSqr) >= massCutIasHighPHighIh_)
@@ -913,7 +1101,7 @@ int main(int argc, char ** argv)
           afterPreselectionPlots.iasNoMHist->Fill(iasNoM);
           afterPreselectionPlots.ihVsIasHist->Fill(ias,ih);
           afterPreselectionPlots.pVsNoMHist->Fill(iasNoM,trackP);
-          float massSqr = (ih-dEdx_c_)*pow(trackP,2)/dEdx_k_;
+//          float massSqr = (ih-dEdx_c_)*pow(trackP,2)/dEdx_k_;
           if(massSqr >= 0)
             afterPreselectionPlots.massHist->Fill(sqrt(massSqr));
           // fill pt vs ias only for ABC regions
@@ -922,22 +1110,175 @@ int main(int argc, char ** argv)
           if(fabs(trackEta) < 0.9)
             afterPreselectionPlots.pVsNoMCentralEtaHist->Fill(iasNoM,trackP);
           if(fabs(trackEta) < 0.2)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice1Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice1Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice1Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice1Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice1Hist->Fill(trackP,ias);
+            }
+          }
           else if(fabs(trackEta) < 0.4)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice2Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice2Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice2Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice2Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice2Hist->Fill(trackP,ias);
+            }
+          }
           else if(fabs(trackEta) < 0.6)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice3Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice3Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice3Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice3Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice3Hist->Fill(trackP,ias);
+            }
+          }
           else if(fabs(trackEta) < 0.8)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice4Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice4Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice4Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice4Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice4Hist->Fill(trackP,ias);
+            }
+          }
           else if(fabs(trackEta) < 1.0)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice5Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice5Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice5Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice5Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice5Hist->Fill(trackP,ias);
+            }
+          }
           else if(fabs(trackEta) < 1.2)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice6Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice6Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice6Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice6Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice6Hist->Fill(trackP,ias);
+            }
+          }
           else if(fabs(trackEta) < 1.4)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice7Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice7Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice7Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice7Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice7Hist->Fill(trackP,ias);
+            }
+          }
           else if(fabs(trackEta) < 1.6)
+          {
             afterPreselectionPlots.pVsNoMEtaSlice8Hist->Fill(iasNoM,trackP);
+            afterPreselectionPlots.ihVsPEtaSlice8Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPEtaSlice8Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonEtaSlice8Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonEtaSlice8Hist->Fill(trackP,ias);
+            }
+          }
 
+          // NoM
+          if(iasNoM==5||iasNoM==6)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice1Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice1Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice1Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice1Hist->Fill(trackP,ias);
+            }
+          }
+          else if(iasNoM==7||iasNoM==8)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice2Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice2Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice2Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice2Hist->Fill(trackP,ias);
+            }
+          }
+          else if(iasNoM==9||iasNoM==10)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice3Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice3Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice3Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice3Hist->Fill(trackP,ias);
+            }
+          }
+          else if(iasNoM==11||iasNoM==12)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice4Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice4Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice4Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice4Hist->Fill(trackP,ias);
+            }
+          }
+          else if(iasNoM==13||iasNoM==14)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice5Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice5Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice5Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice5Hist->Fill(trackP,ias);
+            }
+          }
+          else if(iasNoM==15||iasNoM==16)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice6Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice6Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice6Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice6Hist->Fill(trackP,ias);
+            }
+          }
+          else if(iasNoM==17||iasNoM==18)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice7Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice7Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice7Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice7Hist->Fill(trackP,ias);
+            }
+          }
+          else if(iasNoM==19||iasNoM==20)
+          {
+            afterPreselectionPlots.ihVsPNoMSlice8Hist->Fill(trackP,ih);
+            afterPreselectionPlots.iasVsPNoMSlice8Hist->Fill(trackP,ias);
+            if(isProtonMass)
+            {
+              afterPreselectionPlots.ihVsPProtonNoMSlice8Hist->Fill(trackP,ih);
+              afterPreselectionPlots.iasVsPProtonNoMSlice8Hist->Fill(trackP,ias);
+            }
+          }
           afterPreselectionPlots.nohVsNoMHist->Fill(iasNoM,trackNoH);
           if(fabs(trackEta) < 0.9)
             afterPreselectionPlots.nohVsNoMCentralEtaHist->Fill(iasNoM,trackNoH);
@@ -994,7 +1335,7 @@ int main(int argc, char ** argv)
           }
 
           //// now consider the ToF
-          //if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,true))
+          //if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,true,is8TeV_))
           //  continue;
 
           // require muon ref when accessing ToF, or the collections will be null
@@ -1016,7 +1357,6 @@ int main(int argc, char ** argv)
 
         } // done looking at HSCParticle collection
 
-        std::cout << "Point B" << std::endl;
         if(numTracksPassingPreselectionThisEvent > 0)
         {
           rooVarIas = tempIas;
@@ -1087,7 +1427,6 @@ int main(int argc, char ** argv)
       } // loop over events
 
       // close input file
-      std::cout << "Point C" << std::endl;
       inFile->Close();
     }
     // break loop if maximal number of events is reached:
@@ -1096,7 +1435,6 @@ int main(int argc, char ** argv)
   }
   // end of file/event loop
   
-  std::cout << "Point D" << std::endl;
   afterPreselectionPlots.pDistributionHist->Scale(scaleFactor_);
 
   rooVarNumGenHSCPEvents = numGenHSCPEvents;

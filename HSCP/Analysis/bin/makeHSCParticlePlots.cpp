@@ -941,8 +941,8 @@ int main(int argc, char ** argv)
         double runNumber = ev.id().run();
         double eventNumber = ev.id().event();
         // check trigger
-        if(!passesTrigger(ev,true,true,is8TeV_))
-          continue;
+//        if(!passesTrigger(ev,true,true,is8TeV_))
+//          continue;
 
         numEventsPassingTrigger++;
 
@@ -1002,6 +1002,8 @@ int main(int argc, char ** argv)
             iasNoMNoPreselProtonHist->Fill(iasNoM);
 
           // apply preselections, not considering ToF
+          //if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,is8TeV_,beforePreselectionPlots))
+          if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,true,beforePreselectionPlots))
           if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,is8TeV_,beforePreselectionPlots))
             continue;
 
@@ -1111,172 +1113,171 @@ int main(int argc, char ** argv)
             afterPreselectionPlots.pVsNoMCentralEtaHist->Fill(iasNoM,trackP);
           if(fabs(trackEta) < 0.2)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice1Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice1Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice1Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice1Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice1Hist->Fill(trackP,ih);
+            iasVsPEtaSlice1Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice1Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice1Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice1Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice1Hist->Fill(trackP,ias);
             }
           }
           else if(fabs(trackEta) < 0.4)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice2Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice2Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice2Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice2Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice2Hist->Fill(trackP,ih);
+            iasVsPEtaSlice2Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice2Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice2Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice2Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice2Hist->Fill(trackP,ias);
             }
           }
           else if(fabs(trackEta) < 0.6)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice3Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice3Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice3Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice3Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice3Hist->Fill(trackP,ih);
+            iasVsPEtaSlice3Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice3Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice3Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice3Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice3Hist->Fill(trackP,ias);
             }
           }
           else if(fabs(trackEta) < 0.8)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice4Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice4Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice4Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice4Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice4Hist->Fill(trackP,ih);
+            iasVsPEtaSlice4Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice4Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice4Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice4Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice4Hist->Fill(trackP,ias);
             }
           }
           else if(fabs(trackEta) < 1.0)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice5Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice5Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice5Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice5Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice5Hist->Fill(trackP,ih);
+            iasVsPEtaSlice5Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice5Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice5Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice5Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice5Hist->Fill(trackP,ias);
             }
           }
           else if(fabs(trackEta) < 1.2)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice6Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice6Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice6Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice6Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice6Hist->Fill(trackP,ih);
+            iasVsPEtaSlice6Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice6Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice6Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice6Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice6Hist->Fill(trackP,ias);
             }
           }
           else if(fabs(trackEta) < 1.4)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice7Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice7Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice7Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice7Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice7Hist->Fill(trackP,ih);
+            iasVsPEtaSlice7Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice7Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice7Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice7Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice7Hist->Fill(trackP,ias);
             }
           }
           else if(fabs(trackEta) < 1.6)
           {
-            afterPreselectionPlots.pVsNoMEtaSlice8Hist->Fill(iasNoM,trackP);
-            afterPreselectionPlots.ihVsPEtaSlice8Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPEtaSlice8Hist->Fill(trackP,ias);
+            pVsNoMEtaSlice8Hist->Fill(iasNoM,trackP);
+            ihVsPEtaSlice8Hist->Fill(trackP,ih);
+            iasVsPEtaSlice8Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonEtaSlice8Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonEtaSlice8Hist->Fill(trackP,ias);
+              ihVsPProtonEtaSlice8Hist->Fill(trackP,ih);
+              iasVsPProtonEtaSlice8Hist->Fill(trackP,ias);
             }
           }
-
           // NoM
           if(iasNoM==5||iasNoM==6)
           {
-            afterPreselectionPlots.ihVsPNoMSlice1Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice1Hist->Fill(trackP,ias);
+            ihVsPNoMSlice1Hist->Fill(trackP,ih);
+            iasVsPNoMSlice1Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice1Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice1Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice1Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice1Hist->Fill(trackP,ias);
             }
           }
           else if(iasNoM==7||iasNoM==8)
           {
-            afterPreselectionPlots.ihVsPNoMSlice2Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice2Hist->Fill(trackP,ias);
+            ihVsPNoMSlice2Hist->Fill(trackP,ih);
+            iasVsPNoMSlice2Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice2Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice2Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice2Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice2Hist->Fill(trackP,ias);
             }
           }
           else if(iasNoM==9||iasNoM==10)
           {
-            afterPreselectionPlots.ihVsPNoMSlice3Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice3Hist->Fill(trackP,ias);
+            ihVsPNoMSlice3Hist->Fill(trackP,ih);
+            iasVsPNoMSlice3Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice3Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice3Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice3Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice3Hist->Fill(trackP,ias);
             }
           }
           else if(iasNoM==11||iasNoM==12)
           {
-            afterPreselectionPlots.ihVsPNoMSlice4Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice4Hist->Fill(trackP,ias);
+            ihVsPNoMSlice4Hist->Fill(trackP,ih);
+            iasVsPNoMSlice4Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice4Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice4Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice4Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice4Hist->Fill(trackP,ias);
             }
           }
           else if(iasNoM==13||iasNoM==14)
           {
-            afterPreselectionPlots.ihVsPNoMSlice5Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice5Hist->Fill(trackP,ias);
+            ihVsPNoMSlice5Hist->Fill(trackP,ih);
+            iasVsPNoMSlice5Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice5Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice5Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice5Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice5Hist->Fill(trackP,ias);
             }
           }
           else if(iasNoM==15||iasNoM==16)
           {
-            afterPreselectionPlots.ihVsPNoMSlice6Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice6Hist->Fill(trackP,ias);
+            ihVsPNoMSlice6Hist->Fill(trackP,ih);
+            iasVsPNoMSlice6Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice6Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice6Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice6Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice6Hist->Fill(trackP,ias);
             }
           }
           else if(iasNoM==17||iasNoM==18)
           {
-            afterPreselectionPlots.ihVsPNoMSlice7Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice7Hist->Fill(trackP,ias);
+            ihVsPNoMSlice7Hist->Fill(trackP,ih);
+            iasVsPNoMSlice7Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice7Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice7Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice7Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice7Hist->Fill(trackP,ias);
             }
           }
           else if(iasNoM==19||iasNoM==20)
           {
-            afterPreselectionPlots.ihVsPNoMSlice8Hist->Fill(trackP,ih);
-            afterPreselectionPlots.iasVsPNoMSlice8Hist->Fill(trackP,ias);
+            ihVsPNoMSlice8Hist->Fill(trackP,ih);
+            iasVsPNoMSlice8Hist->Fill(trackP,ias);
             if(isProtonMass)
             {
-              afterPreselectionPlots.ihVsPProtonNoMSlice8Hist->Fill(trackP,ih);
-              afterPreselectionPlots.iasVsPProtonNoMSlice8Hist->Fill(trackP,ias);
+              ihVsPProtonNoMSlice8Hist->Fill(trackP,ih);
+              iasVsPProtonNoMSlice8Hist->Fill(trackP,ias);
             }
           }
           afterPreselectionPlots.nohVsNoMHist->Fill(iasNoM,trackNoH);

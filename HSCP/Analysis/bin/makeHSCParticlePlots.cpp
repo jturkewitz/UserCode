@@ -350,9 +350,9 @@ int main(int argc, char ** argv)
   TH2F* trackEtaVsPSearchRegionHist = fs.make<TH2F>("trackEtaVsPSearchRegion","Track #eta vs. p (SearchRegion+MassCut);GeV",4000,0,2000,24,0,2.4);
   trackEtaVsPSearchRegionHist->Sumw2();
   // ias NoM
-  TH1F* iasNoMHist = fs.make<TH1F>("iasNoM","NoM (ias)",50,0,50);
+  //TH1F* iasNoMHist = fs.make<TH1F>("iasNoM","NoM (ias)",50,0,50);
   // ias NoM -- proton
-  TH1F* iasNoMProtonHist = fs.make<TH1F>("iasNoMProton","NoM proton mass cut (ias)",50,0,50);
+  //TH1F* iasNoMProtonHist = fs.make<TH1F>("iasNoMProton","NoM proton mass cut (ias)",50,0,50);
   // ias NoM - no preselection
   TH1F* iasNoMNoPreselHist = fs.make<TH1F>("iasNoMNoPresel","NoM no preselection (ias)",50,0,50);
   // ias NoM - no preselection, proton mass cut
@@ -375,9 +375,9 @@ int main(int argc, char ** argv)
   TH2F* ihVsIasHist = fs.make<TH2F>("ihVsIas","Ih vs. Ias;;MeV/cm",400,0,1,400,0,10);
   ihVsIasHist->Sumw2();
   // p vs NoM
-  TH2F* pVsNoMHist = fs.make<TH2F>("pVsNoM","Track P vs. NoM (Ias);;GeV",50,0,50,100,0,1000);
+  //TH2F* pVsNoMHist = fs.make<TH2F>("pVsNoM","Track P vs. NoM (Ias);;GeV",50,0,50,100,0,1000);
   // p vs NoM, central eta only
-  TH2F* pVsNoMCentralEtaHist = fs.make<TH2F>("pVsNoMCentralEta","Track P vs. NoM (Ias), |#eta| < 0.9;;GeV",50,0,50,100,0,1000);
+  //TH2F* pVsNoMCentralEtaHist = fs.make<TH2F>("pVsNoMCentralEta","Track P vs. NoM (Ias), |#eta| < 0.9;;GeV",50,0,50,100,0,1000);
   // p vs NoM, eta slices
   TH2F* pVsNoMEtaSlice1Hist = fs.make<TH2F>("pVsNoMEtaSlice1","Track P vs. NoM (Ias), |#eta| < 0.2;;GeV",50,0,50,100,0,1000);
   TH2F* pVsNoMEtaSlice2Hist = fs.make<TH2F>("pVsNoMEtaSlice2","Track P vs. NoM (Ias), 0.2 < |#eta| < 0.4;;GeV",50,0,50,100,0,1000);
@@ -461,17 +461,17 @@ int main(int argc, char ** argv)
   TH2F* iasVsPProtonNoMSlice7Hist = fs.make<TH2F>("iasVsPProtonNoMSlice7","Ias vs. p, proton mass cut, NoM 17-18;GeV;MeV/cm",100,0,4,100,0,1);
   TH2F* iasVsPProtonNoMSlice8Hist = fs.make<TH2F>("iasVsPProtonNoMSlice8","Ias vs. p, proton mass cut, NoM 19-20;GeV;MeV/cm",100,0,4,100,0,1);
   // NoH vs NoM
-  TH2F* nohVsNoMHist = fs.make<TH2F>("nohVsNoM","Number of hits vs. NoM (Ias);NoM;NoH",50,0,50,50,0,50);
+  //TH2F* nohVsNoMHist = fs.make<TH2F>("nohVsNoM","Number of hits vs. NoM (Ias);NoM;NoH",50,0,50,50,0,50);
   // NoH vs NoM, central eta
-  TH2F* nohVsNoMCentralEtaHist = fs.make<TH2F>("nohVsNoMCentral","Number of hits vs. NoM (Ias), |#eta| < 0.9;NoM;NoH",50,0,50,50,0,50);
+  //TH2F* nohVsNoMCentralEtaHist = fs.make<TH2F>("nohVsNoMCentral","Number of hits vs. NoM (Ias), |#eta| < 0.9;NoM;NoH",50,0,50,50,0,50);
   // p vs NoH
-  TH2F* pVsNoHHist = fs.make<TH2F>("pVsNoH","Track P vs. NoH;;GeV",50,0,50,100,0,1000);
+  //TH2F* pVsNoHHist = fs.make<TH2F>("pVsNoH","Track P vs. NoH;;GeV",50,0,50,100,0,1000);
   // p vs NoH, central eta only
-  TH2F* pVsNoHCentralEtaHist = fs.make<TH2F>("pVsNoHCentralEta","Track P vs. NoH, |#eta| < 0.9;;GeV",50,0,50,100,0,1000);
+  //TH2F* pVsNoHCentralEtaHist = fs.make<TH2F>("pVsNoHCentralEta","Track P vs. NoH, |#eta| < 0.9;;GeV",50,0,50,100,0,1000);
   // p vs relPerr
-  TH2F* pVsRelPerrHist = fs.make<TH2F>("pVsRelPerr","Track P vs. #Deltap/p;;GeV",100,0,1,100,0,1000);
+  //TH2F* pVsRelPerrHist = fs.make<TH2F>("pVsRelPerr","Track P vs. #Deltap/p;;GeV",100,0,1,100,0,1000);
   // p vs relPerr, central eta only
-  TH2F* pVsRelPerrCentralEtaHist = fs.make<TH2F>("pVsRelPerrCentralEta","Track P vs. #Deltap/p, |#eta| < 0.9;;GeV",100,0,1,100,0,1000);
+  //TH2F* pVsRelPerrCentralEtaHist = fs.make<TH2F>("pVsRelPerrCentralEta","Track P vs. #Deltap/p, |#eta| < 0.9;;GeV",100,0,1,100,0,1000);
   // num hscp gen per event
   TH1F* numHSCPGenPerEventHist = fs.make<TH1F>("numHSCPGenPerEvent","Number of gen HSCPs per event",4,0,4);
   // num hscp seen per event
@@ -486,13 +486,13 @@ int main(int argc, char ** argv)
   TH1F* numTracksPassingPreselCRegionPerEventHist = fs.make<TH1F>("numTracksPassingPreselCRegionPerEventHist",
       "Tracks passing preselection in C region per event",10,0,10);
   // HSCP eta
-  TH1F* hscpEtaHist = fs.make<TH1F>("hscpEtaHist","#eta (matched to HSCP)",60,-3,3);
+  //TH1F* hscpEtaHist = fs.make<TH1F>("hscpEtaHist","#eta (matched to HSCP)",60,-3,3);
   // nom c region
-  TH1F* nomCRegionHist = fs.make<TH1F>("nomCRegionHist","NoM C region (ias < 0.1)",16,5,21);
+  //TH1F* nomCRegionHist = fs.make<TH1F>("nomCRegionHist","NoM C region (ias < 0.1)",16,5,21);
   // eta c region
-  TH1F* etaCRegionHist = fs.make<TH1F>("etaCRegionHist","Eta C region (ias < 0.1);#eta",60,-3,3);
+  //TH1F* etaCRegionHist = fs.make<TH1F>("etaCRegionHist","Eta C region (ias < 0.1);#eta",60,-3,3);
   // pt c region
-  TH1F* ptCRegionHist = fs.make<TH1F>("ptCRegionHist","Pt C region (ias < 0.1);GeV",200,0,2000);
+  //TH1F* ptCRegionHist = fs.make<TH1F>("ptCRegionHist","Pt C region (ias < 0.1);GeV",200,0,2000);
   // search region (only filled for MC)
   TH1F* pDistributionSearchRegionHist = fs.make<TH1F>("pDistributionSearchRegion","SearchRegion+MassCutP;GeV",200,0,2000);
   pDistributionSearchRegionHist->Sumw2();
@@ -618,10 +618,8 @@ int main(int argc, char ** argv)
   {
     for(unsigned int iFile=0; iFile<inputHandler_.files().size(); ++iFile)
     {
-      std::cout << "Point A0" << std::endl;
       // open input file (can be located on castor)
       TFile* inFile = TFile::Open(inputHandler_.files()[iFile].c_str());
-      std::cout << "Point A1" << std::endl;
       if( inFile )
       {
         if(inputHandler_.files()[iFile].find("BX1") != string::npos)
@@ -658,7 +656,7 @@ int main(int argc, char ** argv)
               sum_nvtx += float(npv);
             }
             float ave_nvtx = sum_nvtx/3.;
-            PUWeight_thisevent = LumiWeightsMC_.weight3BX( ave_nvtx );
+            PUWeight_thisevent = LumiWeightsMC_.weight( ave_nvtx );
             PUSystFactor = PShift_.ShiftWeight( ave_nvtx );
           }
           else
@@ -801,7 +799,7 @@ int main(int argc, char ** argv)
                 sum_nvtx += float(npv);
               }
               float ave_nvtx = sum_nvtx/3.;
-              PUWeight_thisevent = LumiWeightsMC_.weight3BX( ave_nvtx );
+              PUWeight_thisevent = LumiWeightsMC_.weight( ave_nvtx );
               PUSystFactor = PShift_.ShiftWeight( ave_nvtx );
             }
             else
@@ -978,7 +976,7 @@ int main(int argc, char ** argv)
             int ClosestGen;
             if(DistToHSCP(hscp, genColl, ClosestGen)>0.03)
               continue;
-            NChargedHSCP = getNumGenHSCP(genColl,true);
+           NChargedHSCP = getNumGenHSCP(genColl,true);
           }
 
           float ih = dedxMObj.dEdx();

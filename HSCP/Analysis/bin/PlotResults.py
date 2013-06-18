@@ -16,12 +16,21 @@ from ROOT import TGraph,TMultiGraph,TCanvas,TPaveText,gROOT,TLegend,TCutG,kGreen
 # at UMN, must use /usr/bin/python (2.4) and my compiled ROOT version (5.32.02)
 
 #BaseDir = 'FARM_MakeHSCParticlePlots_data_2012_Jul18'
-BaseDir = 'FARM_MakeHSCParticlePlots_data_2012_Aug15'
+#BaseDir = 'FARM_MakeHSCParticlePlots_data_2012_Apr22'
+#BaseDir = 'FARM_MakeHSCParticlePlots_data_2012_testingChangedMcShift_May22'
+#BaseDir = 'FARM_MakeHSCParticlePlots_data_2012_testingChangedPileup_May28'
+BaseDir = 'FARM_MakeHSCParticlePlots_data_2012_testingChangedPileup_Jun13'
+#testing - need to modify such that this works for 8 TeV as well
+is8TeV = True
 
 runCERN = False
-PlotMinScale = 0.0005
+#PlotMinScale = 0.0005
+PlotMinScale = 0.00005
 PlotMaxScale = 3
-GluinoXSecFile = 'gluino_XSec.txt'
+if not is8TeV:
+  GluinoXSecFile = 'gluino_XSec.txt'
+else:
+  GluinoXSecFile = 'gluino_8TeV_XSec.txt'
 StopXSecFile = 'stop_XSec.txt'
 StauXSecFile = 'stau_XSec.txt'
 
@@ -158,7 +167,7 @@ class LimitResult:
     return latexLine
 
   def StringTableLine(self):
-    tableString = string.ljust(self.name,15)+string.ljust(self.ptCut,6)+string.ljust(self.iasCut,6)
+    tableString = string.ljust(self.name,19)+string.ljust(self.ptCut,6)+string.ljust(self.iasCut,6)
     tableString+=string.center(str(self.massCut),8)+string.center(str(round(self.sigEff,4)),10)
     backExpString = str(round(self.expBg,4))+' +/- '+str(round(self.expBgStatErr,4))
     tableString+=string.center(backExpString,22)+string.center(str(self.obsEvts),10)
@@ -542,7 +551,7 @@ for model in modelList:
 # TABLE OUTPUT
 print
 print
-titleString = string.ljust('Model',15)+string.ljust('Pt',6)+string.ljust('Ias',6)+string.center('Mass',8)
+titleString = string.ljust('Model',19)+string.ljust('Pt',6)+string.ljust('Ias',6)+string.center('Mass',8)
 titleString+=string.center('SigEff',10)+string.center('BackExpOverIas',22)+string.center('Obs.',10)
 titleString+=string.center('ThCrossSec',10)+string.center('ExpLim',10)+string.center('ObsLim',10)
 titleString+=string.center('Exp5SigDisc',12)
@@ -597,49 +606,51 @@ txt_file.close()
 print
 print 'Tables of ratios with standard analysis'
 print
-for limitRes in LimitResultsGluinos+LimitResultsGluinoNs+LimitResultsStops+LimitResultsStopNs+LimitResultsStaus:
-  expLimStd = StdAnaInfo[limitRes.name][0]
-  obsLimStd = StdAnaInfo[limitRes.name][1]
-  fiveSigmaStd = StdAnaInfo[limitRes.name][2]
-  ratioLimExp = round(expLimStd/limitRes.expLimit,2)
-  ratioLimObs = round(obsLimStd/limitRes.obsLimit,2)
-  ratioFiveSig = round(fiveSigmaStd/limitRes.fiveSigmaXSec,2)
-  modelSymbol = ''
-  if('Gluino' in limitRes.name):
-    modelSymbol = '$\\tilde{g}$'
-  elif('GMStau' in limitRes.name):
-    modelSymbol = '$\\tilde\\tau$'
-  elif('Stop' in limitRes.name):
-    modelSymbol = '$\\tilde{t}$'
-  latexLine = modelSymbol+' '+str(limitRes.mass)+'&'
-  latexLine+='%.1E'%expLimStd+'&'
-  latexLine+='%.1E'%limitRes.expLimit+'&'
-  #latexLine+='%.1E'%obsLimStd+'&'
-  #latexLine+='%.1E'%limitRes.obsLimit+'&'
-  latexLine+='%.1E'%fiveSigmaStd+'&'
-  latexLine+='%.1E'%limitRes.fiveSigmaXSec+'&'
-  latexLine+=str(ratioLimExp)+'&'
-  #latexline+=str(ratioLimObs)+'&'
-  latexLine+=str(ratioFiveSig)
-  latexLine+='\\\\'
-  print latexLine
-print
-print
-titleString = string.ljust('Model',15)+string.center('ExpLimStd',12)+string.center('ObsLimStd',12)+string.center('5XsecStd',12)
-titleString+=string.center('ExpLimShape',12)+string.center('ObsLimShape',12)+string.center('5XsecShape',12)
-titleString+=string.center('ExpLimStd/sh',14)+string.center('ObsLimStd/sh',14)+string.center('5XsecStd/sh',14)
-print titleString
-for limitRes in LimitResultsGluinos+LimitResultsGluinoNs+LimitResultsStops+LimitResultsStopNs+LimitResultsStaus:
-  expLimStd = StdAnaInfo[limitRes.name][0]
-  obsLimStd = StdAnaInfo[limitRes.name][1]
-  fiveSigmaStd = StdAnaInfo[limitRes.name][2]
-  ratioLimExp = round(expLimStd/limitRes.expLimit,2)
-  ratioLimObs = round(obsLimStd/limitRes.obsLimit,2)
-  ratioFiveSig = round(fiveSigmaStd/limitRes.fiveSigmaXSec,2)
-  printString = string.ljust(limitRes.name,15)+string.center(str(expLimStd),12)+string.center(str(obsLimStd),12)+string.center(str(fiveSigmaStd),12)
-  printString+=string.center('%.1E'%limitRes.expLimit,12)+string.center('%.1E'%limitRes.obsLimit,12)+string.center('%.1E'%limitRes.fiveSigmaXSec,12)
-  printString+=string.center(str(ratioLimExp),14)+string.center(str(ratioLimObs),14)+string.center(str(ratioFiveSig),14)
-  print printString
+##for now just don't do ratio for 8 TeV
+if not is8TeV:
+  for limitRes in LimitResultsGluinos+LimitResultsGluinoNs+LimitResultsStops+LimitResultsStopNs+LimitResultsStaus:
+    expLimStd = StdAnaInfo[limitRes.name][0]
+    obsLimStd = StdAnaInfo[limitRes.name][1]
+    fiveSigmaStd = StdAnaInfo[limitRes.name][2]
+    ratioLimExp = round(expLimStd/limitRes.expLimit,2)
+    ratioLimObs = round(obsLimStd/limitRes.obsLimit,2)
+    ratioFiveSig = round(fiveSigmaStd/limitRes.fiveSigmaXSec,2)
+    modelSymbol = ''
+    if('Gluino' in limitRes.name):
+      modelSymbol = '$\\tilde{g}$'
+    elif('GMStau' in limitRes.name):
+      modelSymbol = '$\\tilde\\tau$'
+    elif('Stop' in limitRes.name):
+      modelSymbol = '$\\tilde{t}$'
+    latexLine = modelSymbol+' '+str(limitRes.mass)+'&'
+    latexLine+='%.1E'%expLimStd+'&'
+    latexLine+='%.1E'%limitRes.expLimit+'&'
+    #latexLine+='%.1E'%obsLimStd+'&'
+    #latexLine+='%.1E'%limitRes.obsLimit+'&'
+    latexLine+='%.1E'%fiveSigmaStd+'&'
+    latexLine+='%.1E'%limitRes.fiveSigmaXSec+'&'
+    latexLine+=str(ratioLimExp)+'&'
+    #latexline+=str(ratioLimObs)+'&'
+    latexLine+=str(ratioFiveSig)
+    latexLine+='\\\\'
+    print latexLine
+  print
+  print
+  titleString = string.ljust('Model',15)+string.center('ExpLimStd',12)+string.center('ObsLimStd',12)+string.center('5XsecStd',12)
+  titleString+=string.center('ExpLimShape',12)+string.center('ObsLimShape',12)+string.center('5XsecShape',12)
+  titleString+=string.center('ExpLimStd/sh',14)+string.center('ObsLimStd/sh',14)+string.center('5XsecStd/sh',14)
+  print titleString
+  for limitRes in LimitResultsGluinos+LimitResultsGluinoNs+LimitResultsStops+LimitResultsStopNs+LimitResultsStaus:
+    expLimStd = StdAnaInfo[limitRes.name][0]
+    obsLimStd = StdAnaInfo[limitRes.name][1]
+    fiveSigmaStd = StdAnaInfo[limitRes.name][2]
+    ratioLimExp = round(expLimStd/limitRes.expLimit,2)
+    ratioLimObs = round(obsLimStd/limitRes.obsLimit,2)
+    ratioFiveSig = round(fiveSigmaStd/limitRes.fiveSigmaXSec,2)
+    printString = string.ljust(limitRes.name,15)+string.center(str(expLimStd),12)+string.center(str(obsLimStd),12)+string.center(str(fiveSigmaStd),12)
+    printString+=string.center('%.1E'%limitRes.expLimit,12)+string.center('%.1E'%limitRes.obsLimit,12)+string.center('%.1E'%limitRes.fiveSigmaXSec,12)
+    printString+=string.center(str(ratioLimExp),14)+string.center(str(ratioLimObs),14)+string.center(str(ratioFiveSig),14)
+    print printString
 
 # TESTING
 #sys.exit()
@@ -654,12 +665,13 @@ for lr in LimitResultsGluinos:
   massesGluinos.append(lr.mass)
   expCrossSectionsGluinos.append(lr.expLimit)
   obsCrossSectionsGluinos.append(lr.obsLimit)
-  expLimStd = StdAnaInfo[lr.name][0]
-  fiveSigmaStd = StdAnaInfo[lr.name][2]
-  ratioLimExp = round(expLimStd/lr.expLimit,2)
-  ratioFiveSig = round(fiveSigmaStd/lr.fiveSigmaXSec,2)
-  stdShapeExpRatioGluinos.append(ratioLimExp)
-  stdShapeDiscRatioGluinos.append(ratioFiveSig)
+  if not is8TeV:
+    expLimStd = StdAnaInfo[lr.name][0]
+    fiveSigmaStd = StdAnaInfo[lr.name][2]
+    ratioLimExp = round(expLimStd/lr.expLimit,2)
+    ratioFiveSig = round(fiveSigmaStd/lr.fiveSigmaXSec,2)
+    stdShapeExpRatioGluinos.append(ratioLimExp)
+    stdShapeDiscRatioGluinos.append(ratioFiveSig)
 # stops
 massesStops = []
 expCrossSectionsStops = []
@@ -758,214 +770,219 @@ obsLimGraphGluinos.SetMarkerColor(4)
 obsLimGraphGluinos.SetLineWidth(2)
 obsLimGraphGluinos.SetLineStyle(1)
 obsLimGraphGluinos.SetMarkerStyle(22)
-stdShapeExpLimRatioGraphGluinos = TGraph(len(massesGluinos),array.array("f",massesGluinos),array.array("f",stdShapeExpRatioGluinos))
-stdShapeExpLimRatioGraphGluinos.SetTitle('')
-#stdShapeExpLimRatioGraphGluinos.GetYaxis().SetTitle("")
-#stdShapeExpLimRatioGraphGluinos.GetYaxis().SetTitleOffset(1.70)
-stdShapeExpLimRatioGraphGluinos.SetLineColor(4)
-stdShapeExpLimRatioGraphGluinos.SetMarkerColor(4)
-stdShapeExpLimRatioGraphGluinos.SetLineWidth(2)
-stdShapeExpLimRatioGraphGluinos.SetLineStyle(1)
-stdShapeExpLimRatioGraphGluinos.SetMarkerStyle(22)
-stdShapeDiscRatioGraphGluinos = TGraph(len(massesGluinos),array.array("f",massesGluinos),array.array("f",stdShapeDiscRatioGluinos))
-stdShapeDiscRatioGraphGluinos.SetTitle('')
-#stdShapeDiscRatioGraphGluinos.GetYaxis().SetTitle("")
-#stdShapeDiscRatioGraphGluinos.GetYaxis().SetTitleOffset(1.70)
-stdShapeDiscRatioGraphGluinos.SetLineColor(4)
-stdShapeDiscRatioGraphGluinos.SetMarkerColor(4)
-stdShapeDiscRatioGraphGluinos.SetLineWidth(2)
-stdShapeDiscRatioGraphGluinos.SetLineStyle(1)
-stdShapeDiscRatioGraphGluinos.SetMarkerStyle(22)
+if not is8TeV:
+  stdShapeExpLimRatioGraphGluinos = TGraph(len(massesGluinos),array.array("f",massesGluinos),array.array("f",stdShapeExpRatioGluinos))
+  stdShapeExpLimRatioGraphGluinos.SetTitle('')
+  #stdShapeExpLimRatioGraphGluinos.GetYaxis().SetTitle("")
+  #stdShapeExpLimRatioGraphGluinos.GetYaxis().SetTitleOffset(1.70)
+  stdShapeExpLimRatioGraphGluinos.SetLineColor(4)
+  stdShapeExpLimRatioGraphGluinos.SetMarkerColor(4)
+  stdShapeExpLimRatioGraphGluinos.SetLineWidth(2)
+  stdShapeExpLimRatioGraphGluinos.SetLineStyle(1)
+  stdShapeExpLimRatioGraphGluinos.SetMarkerStyle(22)
+  stdShapeDiscRatioGraphGluinos = TGraph(len(massesGluinos),array.array("f",massesGluinos),array.array("f",stdShapeDiscRatioGluinos))
+  stdShapeDiscRatioGraphGluinos.SetTitle('')
+  #stdShapeDiscRatioGraphGluinos.GetYaxis().SetTitle("")
+  #stdShapeDiscRatioGraphGluinos.GetYaxis().SetTitleOffset(1.70)
+  stdShapeDiscRatioGraphGluinos.SetLineColor(4)
+  stdShapeDiscRatioGraphGluinos.SetMarkerColor(4)
+  stdShapeDiscRatioGraphGluinos.SetLineWidth(2)
+  stdShapeDiscRatioGraphGluinos.SetLineStyle(1)
+  stdShapeDiscRatioGraphGluinos.SetMarkerStyle(22)
 # gluinoNs
-expLimGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",expCrossSectionsGluinoNs))
-expLimGraphGluinoNs.SetTitle('')
-expLimGraphGluinoNs.GetYaxis().SetTitle("CrossSection ( pb )")
-expLimGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
-expLimGraphGluinoNs.SetLineColor(4)
-expLimGraphGluinoNs.SetMarkerColor(4)
-expLimGraphGluinoNs.SetLineWidth(2)
-expLimGraphGluinoNs.SetLineStyle(1)
-expLimGraphGluinoNs.SetMarkerStyle(26)
-obsLimGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",obsCrossSectionsGluinoNs))
-obsLimGraphGluinoNs.SetTitle('')
-obsLimGraphGluinoNs.GetYaxis().SetTitle("CrossSection ( pb )")
-obsLimGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
-obsLimGraphGluinoNs.SetLineColor(4)
-obsLimGraphGluinoNs.SetMarkerColor(4)
-obsLimGraphGluinoNs.SetLineWidth(2)
-obsLimGraphGluinoNs.SetLineStyle(1)
-obsLimGraphGluinoNs.SetMarkerStyle(26)
-stdShapeExpLimRatioGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",stdShapeExpRatioGluinoNs))
-stdShapeExpLimRatioGraphGluinoNs.SetTitle('')
-#stdShapeExpLimRatioGraphGluinoNs.GetYaxis().SetTitle("")
-#stdShapeExpLimRatioGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
-stdShapeExpLimRatioGraphGluinoNs.SetLineColor(4)
-stdShapeExpLimRatioGraphGluinoNs.SetMarkerColor(4)
-stdShapeExpLimRatioGraphGluinoNs.SetLineWidth(2)
-stdShapeExpLimRatioGraphGluinoNs.SetLineStyle(1)
-stdShapeExpLimRatioGraphGluinoNs.SetMarkerStyle(26)
-stdShapeDiscRatioGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",stdShapeDiscRatioGluinoNs))
-stdShapeDiscRatioGraphGluinoNs.SetTitle('')
-#stdShapeDiscRatioGraphGluinoNs.GetYaxis().SetTitle("")
-#stdShapeDiscRatioGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
-stdShapeDiscRatioGraphGluinoNs.SetLineColor(4)
-stdShapeDiscRatioGraphGluinoNs.SetMarkerColor(4)
-stdShapeDiscRatioGraphGluinoNs.SetLineWidth(2)
-stdShapeDiscRatioGraphGluinoNs.SetLineStyle(1)
-stdShapeDiscRatioGraphGluinoNs.SetMarkerStyle(26)
-# Stops
-stopThInfo = ReadXSection(StopXSecFile)
-stopXSecErr = GetErrorBand("stopErr",stopThInfo['mass'],stopThInfo['low'],stopThInfo['high'])
-theoryGraphStops = TGraph(len(stopThInfo['mass']),array.array("f",stopThInfo['mass']),array.array("f",stopThInfo['xsec']))
-theoryGraphStops.SetTitle('')
-theoryGraphStops.GetYaxis().SetTitle("CrossSection ( pb )")
-theoryGraphStops.GetYaxis().SetTitleOffset(1.70)
-theoryGraphStops.SetLineColor(2)
-theoryGraphStops.SetMarkerColor(2)
-theoryGraphStops.SetLineWidth(1)
-theoryGraphStops.SetLineStyle(2)
-theoryGraphStops.SetMarkerStyle(1);
-expLimGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",expCrossSectionsStops))
-expLimGraphStops.SetTitle('')
-expLimGraphStops.GetYaxis().SetTitle("CrossSection ( pb )")
-expLimGraphStops.GetYaxis().SetTitleOffset(1.70)
-expLimGraphStops.SetLineColor(2)
-expLimGraphStops.SetMarkerColor(2)
-expLimGraphStops.SetLineWidth(2)
-expLimGraphStops.SetLineStyle(1)
-expLimGraphStops.SetMarkerStyle(21)
-obsLimGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",obsCrossSectionsStops))
-obsLimGraphStops.SetTitle('')
-obsLimGraphStops.GetYaxis().SetTitle("CrossSection ( pb )")
-obsLimGraphStops.GetYaxis().SetTitleOffset(1.70)
-obsLimGraphStops.SetLineColor(2)
-obsLimGraphStops.SetMarkerColor(2)
-obsLimGraphStops.SetLineWidth(2)
-obsLimGraphStops.SetLineStyle(1)
-obsLimGraphStops.SetMarkerStyle(21)
-stdShapeExpLimRatioGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",stdShapeExpRatioStops))
-stdShapeExpLimRatioGraphStops.SetTitle('')
-#stdShapeExpLimRatioGraphStops.GetYaxis().SetTitle("")
-#stdShapeExpLimRatioGraphStops.GetYaxis().SetTitleOffset(1.70)
-stdShapeExpLimRatioGraphStops.SetLineColor(2)
-stdShapeExpLimRatioGraphStops.SetMarkerColor(2)
-stdShapeExpLimRatioGraphStops.SetLineWidth(2)
-stdShapeExpLimRatioGraphStops.SetLineStyle(1)
-stdShapeExpLimRatioGraphStops.SetMarkerStyle(21)
-stdShapeDiscRatioGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",stdShapeDiscRatioStops))
-stdShapeDiscRatioGraphStops.SetTitle('')
-#stdShapeDiscRatioGraphStops.GetYaxis().SetTitle("")
-#stdShapeDiscRatioGraphStops.GetYaxis().SetTitleOffset(1.70)
-stdShapeDiscRatioGraphStops.SetLineColor(2)
-stdShapeDiscRatioGraphStops.SetMarkerColor(2)
-stdShapeDiscRatioGraphStops.SetLineWidth(2)
-stdShapeDiscRatioGraphStops.SetLineStyle(1)
-stdShapeDiscRatioGraphStops.SetMarkerStyle(21)
-# stopNs
-expLimGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",expCrossSectionsStopNs))
-expLimGraphStopNs.SetTitle('')
-expLimGraphStopNs.GetYaxis().SetTitle("CrossSection ( pb )")
-expLimGraphStopNs.GetYaxis().SetTitleOffset(1.70)
-expLimGraphStopNs.SetLineColor(2)
-expLimGraphStopNs.SetMarkerColor(2)
-expLimGraphStopNs.SetLineWidth(2)
-expLimGraphStopNs.SetLineStyle(1)
-expLimGraphStopNs.SetMarkerStyle(25)
-obsLimGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",obsCrossSectionsStopNs))
-obsLimGraphStopNs.SetTitle('')
-obsLimGraphStopNs.GetYaxis().SetTitle("CrossSection ( pb )")
-obsLimGraphStopNs.GetYaxis().SetTitleOffset(1.70)
-obsLimGraphStopNs.SetLineColor(2)
-obsLimGraphStopNs.SetMarkerColor(2)
-obsLimGraphStopNs.SetLineWidth(2)
-obsLimGraphStopNs.SetLineStyle(1)
-obsLimGraphStopNs.SetMarkerStyle(25)
-stdShapeExpLimRatioGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",stdShapeExpRatioStopNs))
-stdShapeExpLimRatioGraphStopNs.SetTitle('')
-#stdShapeExpLimRatioGraphStopNs.GetYaxis().SetTitle("")
-#stdShapeExpLimRatioGraphStopNs.GetYaxis().SetTitleOffset(1.70)
-stdShapeExpLimRatioGraphStopNs.SetLineColor(2)
-stdShapeExpLimRatioGraphStopNs.SetMarkerColor(2)
-stdShapeExpLimRatioGraphStopNs.SetLineWidth(2)
-stdShapeExpLimRatioGraphStopNs.SetLineStyle(1)
-stdShapeExpLimRatioGraphStopNs.SetMarkerStyle(25)
-stdShapeDiscRatioGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",stdShapeDiscRatioStopNs))
-stdShapeDiscRatioGraphStopNs.SetTitle('')
-#stdShapeDiscRatioGraphStopNs.GetYaxis().SetTitle("")
-#stdShapeDiscRatioGraphStopNs.GetYaxis().SetTitleOffset(1.70)
-stdShapeDiscRatioGraphStopNs.SetLineColor(2)
-stdShapeDiscRatioGraphStopNs.SetMarkerColor(2)
-stdShapeDiscRatioGraphStopNs.SetLineWidth(2)
-stdShapeDiscRatioGraphStopNs.SetLineStyle(1)
-stdShapeDiscRatioGraphStopNs.SetMarkerStyle(25)
-# staus
-stauThInfo = ReadXSection(StauXSecFile)
-stauXSecErr = GetErrorBand("stauErr",stauThInfo['mass'],stauThInfo['low'],stauThInfo['high'])
-theoryGraphStaus = TGraph(len(stauThInfo['mass']),array.array("f",stauThInfo['mass']),array.array("f",stauThInfo['xsec']))
-theoryGraphStaus.SetTitle('')
-theoryGraphStaus.GetYaxis().SetTitle("CrossSection ( pb )")
-theoryGraphStaus.GetYaxis().SetTitleOffset(1.70)
-theoryGraphStaus.SetLineColor(1)
-theoryGraphStaus.SetMarkerColor(1)
-theoryGraphStaus.SetLineWidth(1)
-theoryGraphStaus.SetLineStyle(1)
-theoryGraphStaus.SetMarkerStyle(1);
-expLimGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",expCrossSectionsStaus))
-expLimGraphStaus.SetTitle('')
-expLimGraphStaus.GetYaxis().SetTitle("CrossSection ( pb )")
-expLimGraphStaus.GetYaxis().SetTitleOffset(1.70)
-expLimGraphStaus.SetLineColor(1)
-expLimGraphStaus.SetMarkerColor(1)
-expLimGraphStaus.SetLineWidth(2)
-expLimGraphStaus.SetLineStyle(1)
-expLimGraphStaus.SetMarkerStyle(20)
-obsLimGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",obsCrossSectionsStaus))
-obsLimGraphStaus.SetTitle('')
-obsLimGraphStaus.GetYaxis().SetTitle("CrossSection ( pb )")
-obsLimGraphStaus.GetYaxis().SetTitleOffset(1.70)
-obsLimGraphStaus.SetLineColor(1)
-obsLimGraphStaus.SetMarkerColor(1)
-obsLimGraphStaus.SetLineWidth(2)
-obsLimGraphStaus.SetLineStyle(1)
-obsLimGraphStaus.SetMarkerStyle(20)
-stdShapeExpLimRatioGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",stdShapeExpRatioStaus))
-stdShapeExpLimRatioGraphStaus.SetTitle('')
-#stdShapeExpLimRatioGraphStaus.GetYaxis().SetTitle("")
-#stdShapeExpLimRatioGraphStaus.GetYaxis().SetTitleOffset(1.70)
-stdShapeExpLimRatioGraphStaus.SetLineColor(1)
-stdShapeExpLimRatioGraphStaus.SetMarkerColor(1)
-stdShapeExpLimRatioGraphStaus.SetLineWidth(2)
-stdShapeExpLimRatioGraphStaus.SetLineStyle(1)
-stdShapeExpLimRatioGraphStaus.SetMarkerStyle(20)
-stdShapeDiscRatioGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",stdShapeDiscRatioStaus))
-stdShapeDiscRatioGraphStaus.SetTitle('')
-#stdShapeDiscRatioGraphStaus.GetYaxis().SetTitle("")
-#stdShapeDiscRatioGraphStaus.GetYaxis().SetTitleOffset(1.70)
-stdShapeDiscRatioGraphStaus.SetLineColor(1)
-stdShapeDiscRatioGraphStaus.SetMarkerColor(1)
-stdShapeDiscRatioGraphStaus.SetLineWidth(2)
-stdShapeDiscRatioGraphStaus.SetLineStyle(1)
-stdShapeDiscRatioGraphStaus.SetMarkerStyle(20)
+if not is8TeV:
+  expLimGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",expCrossSectionsGluinoNs))
+  expLimGraphGluinoNs.SetTitle('')
+  expLimGraphGluinoNs.GetYaxis().SetTitle("CrossSection ( pb )")
+  expLimGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
+  expLimGraphGluinoNs.SetLineColor(4)
+  expLimGraphGluinoNs.SetMarkerColor(4)
+  expLimGraphGluinoNs.SetLineWidth(2)
+  expLimGraphGluinoNs.SetLineStyle(1)
+  expLimGraphGluinoNs.SetMarkerStyle(26)
+  obsLimGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",obsCrossSectionsGluinoNs))
+  obsLimGraphGluinoNs.SetTitle('')
+  obsLimGraphGluinoNs.GetYaxis().SetTitle("CrossSection ( pb )")
+  obsLimGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
+  obsLimGraphGluinoNs.SetLineColor(4)
+  obsLimGraphGluinoNs.SetMarkerColor(4)
+  obsLimGraphGluinoNs.SetLineWidth(2)
+  obsLimGraphGluinoNs.SetLineStyle(1)
+  obsLimGraphGluinoNs.SetMarkerStyle(26)
+  stdShapeExpLimRatioGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",stdShapeExpRatioGluinoNs))
+  stdShapeExpLimRatioGraphGluinoNs.SetTitle('')
+  #stdShapeExpLimRatioGraphGluinoNs.GetYaxis().SetTitle("")
+  #stdShapeExpLimRatioGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
+  stdShapeExpLimRatioGraphGluinoNs.SetLineColor(4)
+  stdShapeExpLimRatioGraphGluinoNs.SetMarkerColor(4)
+  stdShapeExpLimRatioGraphGluinoNs.SetLineWidth(2)
+  stdShapeExpLimRatioGraphGluinoNs.SetLineStyle(1)
+  stdShapeExpLimRatioGraphGluinoNs.SetMarkerStyle(26)
+  stdShapeDiscRatioGraphGluinoNs = TGraph(len(massesGluinoNs),array.array("f",massesGluinoNs),array.array("f",stdShapeDiscRatioGluinoNs))
+  stdShapeDiscRatioGraphGluinoNs.SetTitle('')
+  #stdShapeDiscRatioGraphGluinoNs.GetYaxis().SetTitle("")
+  #stdShapeDiscRatioGraphGluinoNs.GetYaxis().SetTitleOffset(1.70)
+  stdShapeDiscRatioGraphGluinoNs.SetLineColor(4)
+  stdShapeDiscRatioGraphGluinoNs.SetMarkerColor(4)
+  stdShapeDiscRatioGraphGluinoNs.SetLineWidth(2)
+  stdShapeDiscRatioGraphGluinoNs.SetLineStyle(1)
+  stdShapeDiscRatioGraphGluinoNs.SetMarkerStyle(26)
+  # Stops
+  stopThInfo = ReadXSection(StopXSecFile)
+  stopXSecErr = GetErrorBand("stopErr",stopThInfo['mass'],stopThInfo['low'],stopThInfo['high'])
+  theoryGraphStops = TGraph(len(stopThInfo['mass']),array.array("f",stopThInfo['mass']),array.array("f",stopThInfo['xsec']))
+  theoryGraphStops.SetTitle('')
+  theoryGraphStops.GetYaxis().SetTitle("CrossSection ( pb )")
+  theoryGraphStops.GetYaxis().SetTitleOffset(1.70)
+  theoryGraphStops.SetLineColor(2)
+  theoryGraphStops.SetMarkerColor(2)
+  theoryGraphStops.SetLineWidth(1)
+  theoryGraphStops.SetLineStyle(2)
+  theoryGraphStops.SetMarkerStyle(1);
+  expLimGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",expCrossSectionsStops))
+  expLimGraphStops.SetTitle('')
+  expLimGraphStops.GetYaxis().SetTitle("CrossSection ( pb )")
+  expLimGraphStops.GetYaxis().SetTitleOffset(1.70)
+  expLimGraphStops.SetLineColor(2)
+  expLimGraphStops.SetMarkerColor(2)
+  expLimGraphStops.SetLineWidth(2)
+  expLimGraphStops.SetLineStyle(1)
+  expLimGraphStops.SetMarkerStyle(21)
+  obsLimGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",obsCrossSectionsStops))
+  obsLimGraphStops.SetTitle('')
+  obsLimGraphStops.GetYaxis().SetTitle("CrossSection ( pb )")
+  obsLimGraphStops.GetYaxis().SetTitleOffset(1.70)
+  obsLimGraphStops.SetLineColor(2)
+  obsLimGraphStops.SetMarkerColor(2)
+  obsLimGraphStops.SetLineWidth(2)
+  obsLimGraphStops.SetLineStyle(1)
+  obsLimGraphStops.SetMarkerStyle(21)
+  stdShapeExpLimRatioGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",stdShapeExpRatioStops))
+  stdShapeExpLimRatioGraphStops.SetTitle('')
+  #stdShapeExpLimRatioGraphStops.GetYaxis().SetTitle("")
+  #stdShapeExpLimRatioGraphStops.GetYaxis().SetTitleOffset(1.70)
+  stdShapeExpLimRatioGraphStops.SetLineColor(2)
+  stdShapeExpLimRatioGraphStops.SetMarkerColor(2)
+  stdShapeExpLimRatioGraphStops.SetLineWidth(2)
+  stdShapeExpLimRatioGraphStops.SetLineStyle(1)
+  stdShapeExpLimRatioGraphStops.SetMarkerStyle(21)
+  stdShapeDiscRatioGraphStops = TGraph(len(massesStops),array.array("f",massesStops),array.array("f",stdShapeDiscRatioStops))
+  stdShapeDiscRatioGraphStops.SetTitle('')
+  #stdShapeDiscRatioGraphStops.GetYaxis().SetTitle("")
+  #stdShapeDiscRatioGraphStops.GetYaxis().SetTitleOffset(1.70)
+  stdShapeDiscRatioGraphStops.SetLineColor(2)
+  stdShapeDiscRatioGraphStops.SetMarkerColor(2)
+  stdShapeDiscRatioGraphStops.SetLineWidth(2)
+  stdShapeDiscRatioGraphStops.SetLineStyle(1)
+  stdShapeDiscRatioGraphStops.SetMarkerStyle(21)
+  # stopNs
+  expLimGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",expCrossSectionsStopNs))
+  expLimGraphStopNs.SetTitle('')
+  expLimGraphStopNs.GetYaxis().SetTitle("CrossSection ( pb )")
+  expLimGraphStopNs.GetYaxis().SetTitleOffset(1.70)
+  expLimGraphStopNs.SetLineColor(2)
+  expLimGraphStopNs.SetMarkerColor(2)
+  expLimGraphStopNs.SetLineWidth(2)
+  expLimGraphStopNs.SetLineStyle(1)
+  expLimGraphStopNs.SetMarkerStyle(25)
+  obsLimGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",obsCrossSectionsStopNs))
+  obsLimGraphStopNs.SetTitle('')
+  obsLimGraphStopNs.GetYaxis().SetTitle("CrossSection ( pb )")
+  obsLimGraphStopNs.GetYaxis().SetTitleOffset(1.70)
+  obsLimGraphStopNs.SetLineColor(2)
+  obsLimGraphStopNs.SetMarkerColor(2)
+  obsLimGraphStopNs.SetLineWidth(2)
+  obsLimGraphStopNs.SetLineStyle(1)
+  obsLimGraphStopNs.SetMarkerStyle(25)
+  stdShapeExpLimRatioGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",stdShapeExpRatioStopNs))
+  stdShapeExpLimRatioGraphStopNs.SetTitle('')
+  #stdShapeExpLimRatioGraphStopNs.GetYaxis().SetTitle("")
+  #stdShapeExpLimRatioGraphStopNs.GetYaxis().SetTitleOffset(1.70)
+  stdShapeExpLimRatioGraphStopNs.SetLineColor(2)
+  stdShapeExpLimRatioGraphStopNs.SetMarkerColor(2)
+  stdShapeExpLimRatioGraphStopNs.SetLineWidth(2)
+  stdShapeExpLimRatioGraphStopNs.SetLineStyle(1)
+  stdShapeExpLimRatioGraphStopNs.SetMarkerStyle(25)
+  stdShapeDiscRatioGraphStopNs = TGraph(len(massesStopNs),array.array("f",massesStopNs),array.array("f",stdShapeDiscRatioStopNs))
+  stdShapeDiscRatioGraphStopNs.SetTitle('')
+  #stdShapeDiscRatioGraphStopNs.GetYaxis().SetTitle("")
+  #stdShapeDiscRatioGraphStopNs.GetYaxis().SetTitleOffset(1.70)
+  stdShapeDiscRatioGraphStopNs.SetLineColor(2)
+  stdShapeDiscRatioGraphStopNs.SetMarkerColor(2)
+  stdShapeDiscRatioGraphStopNs.SetLineWidth(2)
+  stdShapeDiscRatioGraphStopNs.SetLineStyle(1)
+  stdShapeDiscRatioGraphStopNs.SetMarkerStyle(25)
+  # staus
+  stauThInfo = ReadXSection(StauXSecFile)
+  stauXSecErr = GetErrorBand("stauErr",stauThInfo['mass'],stauThInfo['low'],stauThInfo['high'])
+  theoryGraphStaus = TGraph(len(stauThInfo['mass']),array.array("f",stauThInfo['mass']),array.array("f",stauThInfo['xsec']))
+  theoryGraphStaus.SetTitle('')
+  theoryGraphStaus.GetYaxis().SetTitle("CrossSection ( pb )")
+  theoryGraphStaus.GetYaxis().SetTitleOffset(1.70)
+  theoryGraphStaus.SetLineColor(1)
+  theoryGraphStaus.SetMarkerColor(1)
+  theoryGraphStaus.SetLineWidth(1)
+  theoryGraphStaus.SetLineStyle(1)
+  theoryGraphStaus.SetMarkerStyle(1);
+  expLimGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",expCrossSectionsStaus))
+  expLimGraphStaus.SetTitle('')
+  expLimGraphStaus.GetYaxis().SetTitle("CrossSection ( pb )")
+  expLimGraphStaus.GetYaxis().SetTitleOffset(1.70)
+  expLimGraphStaus.SetLineColor(1)
+  expLimGraphStaus.SetMarkerColor(1)
+  expLimGraphStaus.SetLineWidth(2)
+  expLimGraphStaus.SetLineStyle(1)
+  expLimGraphStaus.SetMarkerStyle(20)
+  obsLimGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",obsCrossSectionsStaus))
+  obsLimGraphStaus.SetTitle('')
+  obsLimGraphStaus.GetYaxis().SetTitle("CrossSection ( pb )")
+  obsLimGraphStaus.GetYaxis().SetTitleOffset(1.70)
+  obsLimGraphStaus.SetLineColor(1)
+  obsLimGraphStaus.SetMarkerColor(1)
+  obsLimGraphStaus.SetLineWidth(2)
+  obsLimGraphStaus.SetLineStyle(1)
+  obsLimGraphStaus.SetMarkerStyle(20)
+  stdShapeExpLimRatioGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",stdShapeExpRatioStaus))
+  stdShapeExpLimRatioGraphStaus.SetTitle('')
+  #stdShapeExpLimRatioGraphStaus.GetYaxis().SetTitle("")
+  #stdShapeExpLimRatioGraphStaus.GetYaxis().SetTitleOffset(1.70)
+  stdShapeExpLimRatioGraphStaus.SetLineColor(1)
+  stdShapeExpLimRatioGraphStaus.SetMarkerColor(1)
+  stdShapeExpLimRatioGraphStaus.SetLineWidth(2)
+  stdShapeExpLimRatioGraphStaus.SetLineStyle(1)
+  stdShapeExpLimRatioGraphStaus.SetMarkerStyle(20)
+  stdShapeDiscRatioGraphStaus = TGraph(len(massesStaus),array.array("f",massesStaus),array.array("f",stdShapeDiscRatioStaus))
+  stdShapeDiscRatioGraphStaus.SetTitle('')
+  #stdShapeDiscRatioGraphStaus.GetYaxis().SetTitle("")
+  #stdShapeDiscRatioGraphStaus.GetYaxis().SetTitleOffset(1.70)
+  stdShapeDiscRatioGraphStaus.SetLineColor(1)
+  stdShapeDiscRatioGraphStaus.SetMarkerColor(1)
+  stdShapeDiscRatioGraphStaus.SetLineWidth(2)
+  stdShapeDiscRatioGraphStaus.SetLineStyle(1)
+  stdShapeDiscRatioGraphStaus.SetMarkerStyle(20)
 
 c1 = TCanvas("c1", "c1",600,600)
 c1.SetLogy()
 gluinoXSecErr.Draw("f")
-stopXSecErr.Draw("f")
-stauXSecErr.Draw("f")
+if not is8TeV:
+  stopXSecErr.Draw("f")
+  stauXSecErr.Draw("f")
 #PPStauXSecErr  ->Draw("f")
 #MGTk.Draw("same")
 MGTk = TMultiGraph()
 MGTk.Add(theoryGraphGluinos      ,"L")
-MGTk.Add(theoryGraphStops      ,"L")
-MGTk.Add(theoryGraphStaus      ,"L")
+if not is8TeV:
+  MGTk.Add(theoryGraphStops      ,"L")
+  MGTk.Add(theoryGraphStaus      ,"L")
 #MGTk.Add(expLimGraphGluinos      ,"LP")
 #MGTk.Add(expLimGraphStops      ,"LP")
 #MGTk.Add(expLimGraphStaus      ,"LP")
 MGTk.Add(obsLimGraphGluinos      ,"LP")
-MGTk.Add(obsLimGraphGluinoNs      ,"LP")
-MGTk.Add(obsLimGraphStops      ,"LP")
-MGTk.Add(obsLimGraphStopNs      ,"LP")
-MGTk.Add(obsLimGraphStaus      ,"LP")
+if not is8TeV:
+  MGTk.Add(obsLimGraphGluinoNs      ,"LP")
+  MGTk.Add(obsLimGraphStops      ,"LP")
+  MGTk.Add(obsLimGraphStopNs      ,"LP")
+  MGTk.Add(obsLimGraphStaus      ,"LP")
 MGTk.Draw("A")
 MGTk.SetTitle("")
 MGTk.GetXaxis().SetTitle("Mass (GeV/c^{2})")
@@ -992,12 +1009,13 @@ LEGTh.SetBorderSize(0)
 GlThLeg = theoryGraphGluinos.Clone("GluinoThLeg")
 GlThLeg.SetFillColor(gluinoXSecErr.GetFillColor())
 LEGTh.AddEntry(GlThLeg, "gluino (NLO+NLL)" ,"LF")
-StThLeg = theoryGraphStops.Clone("StopThLeg")
-StThLeg.SetFillColor(stopXSecErr.GetFillColor())
-LEGTh.AddEntry(StThLeg   ,"stop   (NLO+NLL)" ,"LF")
-StauThLeg = theoryGraphStaus.Clone("StauThLeg")
-StauThLeg.SetFillColor(stauXSecErr.GetFillColor())
-LEGTh.AddEntry(StauThLeg   ,"GMSB stau   (NLO)" ,"LF")
+if not is8TeV:
+  StThLeg = theoryGraphStops.Clone("StopThLeg")
+  StThLeg.SetFillColor(stopXSecErr.GetFillColor())
+  LEGTh.AddEntry(StThLeg   ,"stop   (NLO+NLL)" ,"LF")
+  StauThLeg = theoryGraphStaus.Clone("StauThLeg")
+  StauThLeg.SetFillColor(stauXSecErr.GetFillColor())
+  LEGTh.AddEntry(StauThLeg   ,"GMSB stau   (NLO)" ,"LF")
 LEGTh.Draw()
 # leg limits
 #LEGTk = TLegend(0.7,0.7,0.9,0.9)
@@ -1008,25 +1026,27 @@ LEGTk.SetFillColor(0)
 LEGTk.SetBorderSize(0)
 #LEGTk.AddEntry(Tk_Obs_GluinoF5 , "gluino; 50% #tilde{g}g"    ,"LP")
 LEGTk.AddEntry(obsLimGraphGluinos , "gluino; 10% #tilde{g}g"    ,"LP")
-LEGTk.AddEntry(obsLimGraphGluinoNs , "gluino; 10% #tilde{g}g, ch. supp."    ,"LP")
-#LEGTk.AddEntry(Tk_Obs_GluinoNF1, "gluino; 10% #tilde{g}g; ch. suppr.","LP")
-LEGTk.AddEntry(obsLimGraphStops     , "stop"            ,"LP")
-LEGTk.AddEntry(obsLimGraphStopNs     , "stop; ch. supp."            ,"LP")
-#LEGTk.AddEntry(Tk_Obs_StopN    , "stop; ch. suppr.","LP")
-#LEGTk.AddEntry(Tk_Obs_PPStau   , "Pair Prod. stau"       ,"LP")
-LEGTk.AddEntry(obsLimGraphStaus   , "GMSB stau"       ,"LP")
+if not is8TeV:
+  LEGTk.AddEntry(obsLimGraphGluinoNs , "gluino; 10% #tilde{g}g, ch. supp."    ,"LP")
+  #LEGTk.AddEntry(Tk_Obs_GluinoNF1, "gluino; 10% #tilde{g}g; ch. suppr.","LP")
+  LEGTk.AddEntry(obsLimGraphStops     , "stop"            ,"LP")
+  LEGTk.AddEntry(obsLimGraphStopNs     , "stop; ch. supp."            ,"LP")
+  #LEGTk.AddEntry(Tk_Obs_StopN    , "stop; ch. suppr.","LP")
+  #LEGTk.AddEntry(Tk_Obs_PPStau   , "Pair Prod. stau"       ,"LP")
+  LEGTk.AddEntry(obsLimGraphStaus   , "GMSB stau"       ,"LP")
 LEGTk.Draw()
 
-limit = FindIntersection(obsLimGraphGluinos,theoryGraphGluinos,300,1200,1,0.00,False)
+limit = FindIntersection(obsLimGraphGluinos,theoryGraphGluinos,300,1500,1,0.00,False)
 print 'Found Gluino (f=0.1) mass limit = ',limit
-limit = FindIntersection(obsLimGraphGluinoNs,theoryGraphGluinos,300,1200,1,0.00,False)
-print 'Found GluinoN (f=0.1) mass limit = ',limit
-limit = FindIntersection(obsLimGraphStops,theoryGraphStops,300,1200,1,0.00,False)
-print 'Found Stop mass limit = ',limit
-limit = FindIntersection(obsLimGraphStopNs,theoryGraphStops,300,1200,1,0.00,False)
-print 'Found StopN mass limit = ',limit
-limit = FindIntersection(obsLimGraphStaus,theoryGraphStaus,100,1000,1,0.00,False)
-print 'Found GMStau mass limit = ',limit
+if not is8TeV:
+  limit = FindIntersection(obsLimGraphGluinoNs,theoryGraphGluinos,300,1200,1,0.00,False)
+  print 'Found GluinoN (f=0.1) mass limit = ',limit
+  limit = FindIntersection(obsLimGraphStops,theoryGraphStops,300,1200,1,0.00,False)
+  print 'Found Stop mass limit = ',limit
+  limit = FindIntersection(obsLimGraphStopNs,theoryGraphStops,300,1200,1,0.00,False)
+  print 'Found StopN mass limit = ',limit
+  limit = FindIntersection(obsLimGraphStaus,theoryGraphStaus,100,1000,1,0.00,False)
+  print 'Found GMStau mass limit = ',limit
 c1.Update()
 c1.Print(plotsDir+'gluinosStopsStaus.png')
 c1.Print(plotsDir+'gluinosStopsStaus.pdf')
@@ -1035,17 +1055,18 @@ c1.Print(plotsDir+'gluinosStopsStaus.pdf')
 c2 = TCanvas("c2", "c2",600,600)
 #c2.SetLogy()
 MGTk = TMultiGraph()
-MGTk.Add(stdShapeExpLimRatioGraphGluinos      ,"LP")
-MGTk.Add(stdShapeExpLimRatioGraphGluinoNs      ,"LP")
-MGTk.Add(stdShapeExpLimRatioGraphStops      ,"LP")
-MGTk.Add(stdShapeExpLimRatioGraphStopNs      ,"LP")
-MGTk.Add(stdShapeExpLimRatioGraphStaus      ,"LP")
-MGTk.Draw("A")
-MGTk.SetTitle("")
-MGTk.GetXaxis().SetTitle("Mass (GeV/c^{2})")
-#MGTk.GetYaxis().SetTitle("#sigma (pb)")
-MGTk.GetYaxis().SetTitleOffset(1.0)
-MGTk.GetYaxis().SetRangeUser(1.0,1.65)
+if not is8TeV:
+  MGTk.Add(stdShapeExpLimRatioGraphGluinos      ,"LP")
+  MGTk.Add(stdShapeExpLimRatioGraphGluinoNs      ,"LP")
+  MGTk.Add(stdShapeExpLimRatioGraphStops      ,"LP")
+  MGTk.Add(stdShapeExpLimRatioGraphStopNs      ,"LP")
+  MGTk.Add(stdShapeExpLimRatioGraphStaus      ,"LP")
+  MGTk.Draw("A")
+  MGTk.SetTitle("")
+  MGTk.GetXaxis().SetTitle("Mass (GeV/c^{2})")
+  #MGTk.GetYaxis().SetTitle("#sigma (pb)")
+  MGTk.GetYaxis().SetTitleOffset(1.0)
+  MGTk.GetYaxis().SetRangeUser(1.0,1.65)
 # lumi text
 Lumi=4976
 X=0.40
@@ -1063,11 +1084,12 @@ LEGTk = TLegend(0.6,0.6,0.9,0.9)
 LEGTk.SetHeader("")
 LEGTk.SetFillColor(0)
 LEGTk.SetBorderSize(0)
-LEGTk.AddEntry(stdShapeExpLimRatioGraphGluinos , "gluino; 10% #tilde{g}g"    ,"LP")
-LEGTk.AddEntry(stdShapeExpLimRatioGraphGluinoNs , "gluino; 10% #tilde{g}g, ch. supp."    ,"LP")
-LEGTk.AddEntry(stdShapeExpLimRatioGraphStops     , "stop"            ,"LP")
-LEGTk.AddEntry(stdShapeExpLimRatioGraphStopNs     , "stop; ch. supp."            ,"LP")
-LEGTk.AddEntry(stdShapeExpLimRatioGraphStaus   , "GMSB stau"       ,"LP")
+if not is8TeV:
+  LEGTk.AddEntry(stdShapeExpLimRatioGraphGluinos , "gluino; 10% #tilde{g}g"    ,"LP")
+  LEGTk.AddEntry(stdShapeExpLimRatioGraphGluinoNs , "gluino; 10% #tilde{g}g, ch. supp."    ,"LP")
+  LEGTk.AddEntry(stdShapeExpLimRatioGraphStops     , "stop"            ,"LP")
+  LEGTk.AddEntry(stdShapeExpLimRatioGraphStopNs     , "stop; ch. supp."            ,"LP")
+  LEGTk.AddEntry(stdShapeExpLimRatioGraphStaus   , "GMSB stau"       ,"LP")
 LEGTk.Draw()
 c2.Update()
 c2.Print(plotsDir+'gluinosStopsStausRatioExpLim.png')
@@ -1079,17 +1101,18 @@ c2.Print(plotsDir+'gluinosStopsStausRatioExpLim.C')
 c3 = TCanvas("c3", "c3",600,600)
 #c3.SetLogy()
 MGTk = TMultiGraph()
-MGTk.Add(stdShapeDiscRatioGraphGluinos      ,"LP")
-MGTk.Add(stdShapeDiscRatioGraphGluinoNs      ,"LP")
-MGTk.Add(stdShapeDiscRatioGraphStops      ,"LP")
-MGTk.Add(stdShapeDiscRatioGraphStopNs      ,"LP")
-MGTk.Add(stdShapeDiscRatioGraphStaus      ,"LP")
-MGTk.Draw("A")
-MGTk.SetTitle("")
-MGTk.GetXaxis().SetTitle("Mass (GeV/c^{2})")
-#MGTk.GetYaxis().SetTitle("#sigma (pb)")
-MGTk.GetYaxis().SetTitleOffset(1.0)
-MGTk.GetYaxis().SetRangeUser(1.5,3.2)
+if not is8TeV:
+  MGTk.Add(stdShapeDiscRatioGraphGluinos      ,"LP")
+  MGTk.Add(stdShapeDiscRatioGraphGluinoNs      ,"LP")
+  MGTk.Add(stdShapeDiscRatioGraphStops      ,"LP")
+  MGTk.Add(stdShapeDiscRatioGraphStopNs      ,"LP")
+  MGTk.Add(stdShapeDiscRatioGraphStaus      ,"LP")
+  MGTk.Draw("A")
+  MGTk.SetTitle("")
+  MGTk.GetXaxis().SetTitle("Mass (GeV/c^{2})")
+  #MGTk.GetYaxis().SetTitle("#sigma (pb)")
+  MGTk.GetYaxis().SetTitleOffset(1.0)
+  MGTk.GetYaxis().SetRangeUser(1.5,3.2)
 # lumi text
 Lumi=4976
 X=0.40
@@ -1107,12 +1130,13 @@ LEGTk = TLegend(0.25,0.65,0.55,0.95)
 LEGTk.SetHeader("")
 LEGTk.SetFillColor(0)
 LEGTk.SetBorderSize(0)
-LEGTk.AddEntry(stdShapeDiscRatioGraphGluinos , "gluino; 10% #tilde{g}g"    ,"LP")
-LEGTk.AddEntry(stdShapeDiscRatioGraphGluinoNs , "gluino; 10% #tilde{g}g, ch. supp."    ,"LP")
-LEGTk.AddEntry(stdShapeDiscRatioGraphStops     , "stop"            ,"LP")
-LEGTk.AddEntry(stdShapeDiscRatioGraphStopNs     , "stop; ch. supp."            ,"LP")
-LEGTk.AddEntry(stdShapeDiscRatioGraphStaus   , "GMSB stau"       ,"LP")
-LEGTk.Draw()
+if not is8TeV:
+  LEGTk.AddEntry(stdShapeDiscRatioGraphGluinos , "gluino; 10% #tilde{g}g"    ,"LP")
+  LEGTk.AddEntry(stdShapeDiscRatioGraphGluinoNs , "gluino; 10% #tilde{g}g, ch. supp."    ,"LP")
+  LEGTk.AddEntry(stdShapeDiscRatioGraphStops     , "stop"            ,"LP")
+  LEGTk.AddEntry(stdShapeDiscRatioGraphStopNs     , "stop; ch. supp."            ,"LP")
+  LEGTk.AddEntry(stdShapeDiscRatioGraphStaus   , "GMSB stau"       ,"LP")
+  LEGTk.Draw()
 c3.Update()
 c3.Print(plotsDir+'gluinosStopsStausRatioDiscXSec.png')
 c3.Print(plotsDir+'gluinosStopsStausRatioDiscXSec.pdf')

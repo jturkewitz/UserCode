@@ -111,6 +111,7 @@ def CreateTheCmdFile():
       cmd_file.write('notification            = Error\n')
       cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="caffeine.spa.umn.edu")\n')
       cmd_file.write('+CondorGroup            = "cmsfarm"\n')
+      cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="zebra01.spa.umn.edu")&&(Machine=!="zebra02.spa.umn.edu")&&(Machine=!="zebra03.spa.umn.edu")&&(Machine=!="caffeine.spa.umn.edu")&&(Machine=!="gc1-ce-sl5.spa.umn.edu.spa.umn.edu")&&(Machine=!="hadoop-test.spa.umn.edu")\n')
       #cmd_file.write('+CondorGroup            = "twins"\n')
       cmd_file.write('should_transfer_files   = NO\n')
       cmd_file.write('Notify_user = turkewitz@physics.umn.edu\n')

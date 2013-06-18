@@ -42,8 +42,10 @@ def CreateTheShellFile(bgInputFile,sigInputFile,massCut,iasCut,ptCut,xSecMin,xSe
     global Do_Bayesian
     global Expected_Limits
     global Condor
-    posLastUndsc = sigInputFile.rfind("_")
-    signalName = sigInputFile[posLastUndsc+1:len(sigInputFile)-5]
+    posLastUndsc = sigInputFile.rfind("G") ##temporary testing for Gluino Apr 26 2013
+#    posLastUndsc = sigInputFile.rfind("_")
+#    signalName = sigInputFile[posLastUndsc+1:len(sigInputFile)-5]
+    signalName = sigInputFile[posLastUndsc:len(sigInputFile)-5]
     #endRemoved = sigInputFile[0:posLastUndsc]
     #posLastUndsc = endRemoved.rfind("_")
     #signalName = endRemoved[posLastUndsc+1:len(endRemoved)]
@@ -63,7 +65,8 @@ def CreateTheShellFile(bgInputFile,sigInputFile,massCut,iasCut,ptCut,xSecMin,xSe
       shell_file.write('# use later root\n')
       # UMN
       if(Condor):
-        shell_file.write('source /local/cms/sw/cmsset_CMSSW5X.sh\n')
+        #shell_file.write('source /local/cms/sw/cmsset_CMSSW5X.sh\n')
+        shell_file.write('source /local/cms/user/turkewitz/root/bin/thisroot.sh\n')
       else:
         # CERN
         shell_file.write('export SCRAM_ARCH=slc5_amd64_gcc462\n')
@@ -140,9 +143,11 @@ def CreateTheCmdFile():
       cmd_file.write('Universe                = vanilla\n')
       cmd_file.write('Environment             = CONDORJOBID=$(Process)\n')
       cmd_file.write('notification            = Error\n')
-      cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="zebra01.spa.umn.edu")&&(Machine=!="zebra02.spa.umn.edu")&&(Machine=!="zebra03.spa.umn.edu")&&(Machine=!="caffeine.spa.umn.edu")\n')
-      #cmd_file.write('+CondorGroup            = "cmsfarm"\n')
-      cmd_file.write('+CondorGroup            = "twins"\n')
+      cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="zebra01.spa.umn.edu")&&(Machine=!="zebra02.spa.umn.edu")&&(Machine=!="zebra03.spa.umn.edu")&&(Machine=!="caffeine.spa.umn.edu")&&(Machine=!="gc1-ce-sl5.spa.umn.edu.spa.umn.edu")&&(Machine=!="hadoop-test.spa.umn.edu")\n')
+      #cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="zebra01.spa.umn.edu")&&(Machine=!="zebra02.spa.umn.edu")&&(Machine=!="zebra03.spa.umn.edu")&&(Machine=!="caffeine.spa.umn.edu")&&(Machine=!="hadoop-test.spa.umn.edu")\n')
+      #cmd_file.write('requirements            = (Memory > 1024)&&(Arch=?="X86_64")&&(Machine=!="zebra01.spa.umn.edu")&&(Machine=!="zebra02.spa.umn.edu")&&(Machine=!="zebra03.spa.umn.edu")&&(Machine=!="caffeine.spa.umn.edu")\n')
+      cmd_file.write('+CondorGroup            = "cmsfarm"\n')
+      #cmd_file.write('+CondorGroup            = "twins"\n')
       cmd_file.write('should_transfer_files   = NO\n')
       cmd_file.write('Notify_user = turkewitz@physics.umn.edu\n')
       #cmd_file.write('should_transfer_files   = YES\n')
@@ -242,9 +247,12 @@ def SendCluster_Push(bgInputFilesBase,sigInputFile,massCut,iasCut,ptCut):
       AddJobToCmdFile(massCut,ptCut,sigInputFile,0)
       Jobs_Count = Jobs_Count+1
     else:
+      ##xSecMin = 0.0001
+      #xSecMin = 0.001
+      #xSecMax = 0.003
       xSecMin = 0.0001
-      #xSecMax = 0.01
-      xSecMax = 0.1
+      xSecMax = 0.001
+      ##xSecMax = 0.1
       # zoom in on limit area
       if(signalName=='Gluino300'):
         xSecMin = 0.002

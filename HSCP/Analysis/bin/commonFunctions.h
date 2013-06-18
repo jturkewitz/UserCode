@@ -38,12 +38,15 @@ struct PlotStruct
   TH1F* ptDistributionHist;
   TH2F* pVsIhHist;
   TH2F* pVsIasHist;
+  TH2F* pVsIhHist_shifted;
+  TH2F* pVsIasHist_shifted;
   TH2F* ptVsIasHist;
   TH2F* trackEtaVsPHist;
   TH1F* iasNoMHist;
   TH2F* pVsIasToFSBHist;
   TH2F* pVsIhToFSBHist;
   TH2F* ihVsIasHist;
+  TH2F* ihVsIasHist_shifted;
   TH2F* pVsNoMHist;
   TH2F* pVsNoMCentralEtaHist;
   TH2F* pVsNoMEtaSlice1Hist;
@@ -158,6 +161,14 @@ struct PlotStruct
     pVsIhTitle+=";MeV/cm;GeV";
     pVsIhHist = plotsDir.make<TH2F>(pVsIhName.c_str(),pVsIhTitle.c_str(),400,0,ihUpperLimit,200,0,pUpperLimit);
     pVsIhHist->Sumw2();
+    // p vs Ih shifted
+    std::string pVsIhName_shifted = "trackPvsIh_shifted";
+    pVsIhName_shifted+=nameString;
+    std::string pVsIhTitle_shifted="Track P vs ih_shifted ";
+    pVsIhTitle_shifted+=titleString;
+    pVsIhTitle_shifted+=";MeV/cm;GeV";
+    pVsIhHist_shifted = plotsDir.make<TH2F>(pVsIhName_shifted.c_str(),pVsIhTitle.c_str(),400,0,ihUpperLimit,200,0,pUpperLimit);
+    pVsIhHist_shifted->Sumw2();
     // p vs Ias
     std::string pVsIasName = "pVsIas";
     pVsIasName+=nameString;
@@ -166,6 +177,14 @@ struct PlotStruct
     pVsIasTitle+=";;GeV";
     pVsIasHist = plotsDir.make<TH2F>(pVsIasName.c_str(),pVsIasTitle.c_str(),20,0,1,200,0,pUpperLimit);
     pVsIasHist->Sumw2();
+    // p vs Ias shifted
+    std::string pVsIasName_shifted = "pVsIas_shifted";
+    pVsIasName_shifted+=nameString;
+    std::string pVsIasTitle_shifted = "P vs Ias_shifted ";
+    pVsIasTitle_shifted+=titleString;
+    pVsIasTitle_shifted+=";;GeV";
+    pVsIasHist_shifted = plotsDir.make<TH2F>(pVsIasName_shifted.c_str(),pVsIasTitle_shifted.c_str(),20,0,1,200,0,pUpperLimit);
+    pVsIasHist_shifted->Sumw2();
     // pt vs Ias
     std::string ptVsIasName = "ptVsIas";
     ptVsIasName+=nameString;
@@ -204,7 +223,15 @@ struct PlotStruct
     pVsIhToFSBTitle+=";MeV/cm;GeV";
     pVsIhToFSBHist = plotsDir.make<TH2F>(pVsIhToFSBName.c_str(),pVsIhToFSBTitle.c_str(),400,0,ihUpperLimit,200,0,pUpperLimit);
     pVsIhToFSBHist->Sumw2();
-    // Ih vs Ias
+    // Ih_shifted vs Ias_shifted
+    std::string ihVsIasName_shifted = "ihVsIas_shifted";
+    ihVsIasName_shifted+=nameString;
+    std::string ihVsIasTitle_shifted = "Ih vs. Ias ";
+    ihVsIasTitle_shifted+=titleString;
+    ihVsIasTitle_shifted+=";MeV/cm";
+    ihVsIasHist_shifted = plotsDir.make<TH2F>(ihVsIasName_shifted.c_str(),ihVsIasTitle_shifted.c_str(),400,0,1,400,0,ihUpperLimit);
+    ihVsIasHist_shifted->Sumw2();
+    // Ih vs Ias shifted
     std::string ihVsIasName = "ihVsIas";
     ihVsIasName+=nameString;
     std::string ihVsIasTitle = "Ih vs. Ias ";
@@ -567,9 +594,15 @@ bool passesTrigger(const fwlite::Event& ev, bool considerMuon = true, bool consi
     edm::TriggerResultsByName tr = ev.triggerResultsByName("MergeHLT");
     if(!tr.isValid())return false;
 
-    if(tr.accept("HSCPHLTTriggerMetDeDxFilter"))return true;
-    if(tr.accept("HSCPHLTTriggerMuDeDxFilter"))return true;
-    if(tr.accept("HSCPHLTTriggerMuFilter"))return true;
+    if(considerMET)
+    {
+      if(tr.accept("HSCPHLTTriggerMetDeDxFilter"))return true;
+    }
+    if(considerMuon)
+    {
+      if(tr.accept("HSCPHLTTriggerMuDeDxFilter"))return true;
+      if(tr.accept("HSCPHLTTriggerMuFilter"))return true;
+    }
 
     return false;
       

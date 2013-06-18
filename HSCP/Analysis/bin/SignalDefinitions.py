@@ -7,7 +7,7 @@ class SignalSample:
     self.iasCut = iasCut
     self.massCut = massCut
 
-
+## 7 TeV
 # name, crossSectionPb,ptCut,iasCut,massCut
 # Gluinos
 Gluino300 = SignalSample('Gluino300',300,'65.8',60,'0.400',180)
@@ -68,9 +68,15 @@ PPStau247 = SignalSample('PPStau247',247,'0.00101',110,'0.400',150)
 PPStau308 = SignalSample('PPStau308',308,'0.000353',70,'0.400',190)
 ## DiChamps - TODO
 
+## 8 TeV
+Gluino_8TeV_M300 = SignalSample('Gluino_8TeV_M300',300,'103.0',70,'0.400',180)
+Gluino_8TeV_M600 = SignalSample('Gluino_8TeV_M600',600,'1.29',70,'0.400',360)
+Gluino_8TeV_M900 = SignalSample('Gluino_8TeV_M900',900,'0.0588',70,'0.400',500)
+Gluino_8TeV_M1200 = SignalSample('Gluino_8TeV_M1200',1200,'0.00435',75,'0.400',600)
 
 modelList = []
-modelList.extend([Gluino300,Gluino600,Gluino900,Gluino1200])
+modelList.extend([Gluino_8TeV_M300,Gluino_8TeV_M600,Gluino_8TeV_M900,Gluino_8TeV_M1200])
+##modelList.extend([Gluino300,Gluino600,Gluino900,Gluino1200])
 ##modelList.extend([Gluino300,Gluino400,Gluino500,Gluino600,Gluino700,Gluino800,Gluino900,Gluino1000,Gluino1100,Gluino1200])
 ##modelList.extend([Stop200,Stop300,Stop400,Stop500,Stop600,Stop700,Stop800]) # remove Stop130
 ##modelList.extend([GMStau200,GMStau247,GMStau308,GMStau370,GMStau432,GMStau494]) # remove GMStau100, GMStau126, GMStau156
@@ -80,5 +86,6 @@ modelList.extend([Gluino300,Gluino600,Gluino900,Gluino1200])
 #modelList.extend([PPStau100,PPStau126,PPStau156,PPStau200,PPStau247,PPStau308])
 
 
-SignalBasePath = "    'file:/hdfs/cms/user/cooper/data/hscp/428/Data/HSCParticles_HSCP2011_PostEPS_Nov11/"
+#SignalBasePath = "    'file:/hdfs/cms/user/cooper/data/hscp/428/Data/HSCParticles_HSCP2011_PostEPS_Nov11/"
+SignalBasePath = "    'file:/hdfs/cms/user/turkewitz/hscp/mc/"
 

@@ -76,6 +76,11 @@ namespace reweight{class PoissonMeanShifter;}
 TF1* mcDataIhPeakShiftFuncs[8];
 // ih width -- averaged over NoM, study on laptop
 TF1* ihWidthSmearFunc; // quad diff
+//Testing for 8 TeV using similar method for Ih and Ias shift
+// MC-data Ias peak shift functions
+TF1* mcDataIasPeakShiftFunc;
+// ias width -- averaged over NoM, study on laptop
+TF1* iasWidthSmearFunc; // 
 // MC-data Ias peak shift graphs
 TGraph* mcDataIasPeakShiftGraphs[8];
 // MC-data Ias width shift graphs
@@ -100,7 +105,7 @@ int getNumGenHSCP(const std::vector<reco::GenParticle>& genColl, bool onlyCharge
 }
 
 double GetSampleWeight(const double& IntegratedLuminosityInPb, const double& IntegratedLuminosityInPbBeforeTriggerChange,
-    const double& CrossSection, const double& MCEvents, int period)
+    const double& CrossSection, const double& MCEvents, int period, bool is8TeV)
 {
   double Weight = 1.0;
   if(IntegratedLuminosityInPb>=IntegratedLuminosityInPbBeforeTriggerChange && IntegratedLuminosityInPb>0)
@@ -109,36 +114,123 @@ double GetSampleWeight(const double& IntegratedLuminosityInPb, const double& Int
     //if(MaxEntry>0)NMCEvents=std::min(MCEvents,(double)MaxEntry);
     if(period==0)
       Weight = (CrossSection * IntegratedLuminosityInPbBeforeTriggerChange) / NMCEvents;
-    else if(period==1)
+    else if(period==1 && !is8TeV)
       Weight = (CrossSection * (IntegratedLuminosityInPb-IntegratedLuminosityInPbBeforeTriggerChange)) / NMCEvents;
+    else if(period==1 && is8TeV)
+      Weight = (CrossSection * (IntegratedLuminosityInPb)) / NMCEvents;
   }
   return Weight;
 }
 
-void initializeIhPeakDiffFunctions(TF1* funcArray[], int arraySize)
+double GetPUWeight(const fwlite::Event& ev, const std::string& pileup, double &PUSystFactor, edm::LumiReWeighting& LumiWeightsMC, edm::LumiReWeighting& LumiWeightsMCSyst){
+   fwlite::Handle<std::vector<PileupSummaryInfo> > PupInfo;
+   PupInfo.getByLabel(ev, "addPileupInfo");
+   if(!PupInfo.isValid()){printf("PileupSummaryInfo Collection NotFound\n");return 1.0;}
+   double PUWeight_thisevent=1;
+   std::vector<PileupSummaryInfo>::const_iterator PVI;
+   int npv = -1; float Tnpv = -1;
+
+   if(pileup=="S4"){
+      float sum_nvtx = 0;
+      for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+         npv = PVI->getPU_NumInteractions();
+         sum_nvtx += float(npv);
+      }
+      float ave_nvtx = sum_nvtx/3.;
+      PUWeight_thisevent = LumiWeightsMC.weight( ave_nvtx );
+      if(PUWeight_thisevent==0) PUSystFactor=1;
+      else PUSystFactor = LumiWeightsMCSyst.weight( ave_nvtx ) / PUWeight_thisevent;
+   }else if(pileup=="S3"){
+      for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+         int BX = PVI->getBunchCrossing();
+         if(BX == 0) {
+            npv = PVI->getPU_NumInteractions();
+            continue;
+         }
+      }
+      PUWeight_thisevent = LumiWeightsMC.weight( npv );
+      if(PUWeight_thisevent==0) PUSystFactor=1;
+      else PUSystFactor = LumiWeightsMCSyst.weight( npv ) / PUWeight_thisevent;
+   }else if(pileup=="S10"){
+     for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
+       int BX = PVI->getBunchCrossing();
+       if(BX == 0) {
+         Tnpv = PVI->getTrueNumInteractions();
+         continue;
+       }
+     }
+     PUWeight_thisevent = LumiWeightsMC.weight( Tnpv );
+     if(PUWeight_thisevent==0) PUSystFactor=1;
+     else PUSystFactor = LumiWeightsMCSyst.weight( Tnpv ) / PUWeight_thisevent;
+   }
+   else {
+     printf("Can not find pile up scenario");
+   }
+   return PUWeight_thisevent;
+}
+
+void initializeIhPeakDiffFunctions(TF1* funcArray[], int arraySize, bool is8TeV)
 {
+  //functions should take momentum and return difference in Ih between MC and data (data - MC) JT
   for(int i=0; i<arraySize; ++i)
   {
     std::string funcName = "myFitNoM";
     funcName+=intToString(i);
     funcArray[i] = new TF1(funcName.c_str(),"pol1(0)");
   }
-  // from study on laptop taking MC/data peak difference
+  if(!is8TeV)
+  {
+  // from study on laptop taking MC/data peak difference SC
   // sometimes excluding lowest momentum points
-  funcArray[0]->SetParameters(0.6301,-0.3019); // NoM 5-6
-  funcArray[1]->SetParameters(0.5195,-0.2264); // 7-8
-  funcArray[2]->SetParameters(0.3924,-0.1238); // 9-10 <-- fitRange 0.68-1.42
-  funcArray[3]->SetParameters(0.4338,-0.1765); // 11-12 <-- fitRange 0.76-1.41
-  funcArray[4]->SetParameters(0.3947,-0.1671); // 13-14 <-- fitRange 0.84-1.4
-  funcArray[5]->SetParameters(0.4378,-0.2382); // 15-16
-  funcArray[6]->SetParameters(0.567,-0.3441);  // 17-18
-  funcArray[7]->SetParameters(0.6271,-0.3795); // 18+
+    funcArray[0]->SetParameters(0.6301,-0.3019); // NoM 5-6
+    funcArray[1]->SetParameters(0.5195,-0.2264); // 7-8
+    funcArray[2]->SetParameters(0.3924,-0.1238); // 9-10 <-- fitRange 0.68-1.42
+    funcArray[3]->SetParameters(0.4338,-0.1765); // 11-12 <-- fitRange 0.76-1.41
+    funcArray[4]->SetParameters(0.3947,-0.1671); // 13-14 <-- fitRange 0.84-1.4
+    funcArray[5]->SetParameters(0.4378,-0.2382); // 15-16
+    funcArray[6]->SetParameters(0.567,-0.3441);  // 17-18
+    funcArray[7]->SetParameters(0.6271,-0.3795); // 18+
+  }
+  else
+  {
+    //testing, for now just have all NoM the same
+    funcArray[0]->SetParameters(-0.08639,0.1674); // NoM 5-6
+    funcArray[1]->SetParameters(-0.08639,0.1674); // 7-8
+    funcArray[2]->SetParameters(-0.08639,0.1674); // 9-10 <-- fitRange 0.68-1.42
+    funcArray[3]->SetParameters(-0.08639,0.1674); // 11-12 <-- fitRange 0.76-1.41
+    funcArray[4]->SetParameters(-0.08639,0.1674); // 13-14 <-- fitRange 0.84-1.4
+    funcArray[5]->SetParameters(-0.08639,0.1674); // 15-16
+    funcArray[6]->SetParameters(-0.08639,0.1674);  // 17-18
+    funcArray[7]->SetParameters(-0.08639,0.1674); // 18+
+  }
 }
 
-void initializeIhWidthDiffFunction()
+void initializeIhWidthDiffFunction(bool is8TeV)
 {
-  ihWidthSmearFunc = new TF1("ihWidthSmearFunc","pol2(0)");
-  ihWidthSmearFunc->SetParameters(1.035,-1.495,0.6101);
+  if(!is8TeV)
+  {
+    ihWidthSmearFunc = new TF1("ihWidthSmearFunc","pol2(0)");
+    ihWidthSmearFunc->SetParameters(1.035,-1.495,0.6101);
+  }
+  else
+  {
+    //testing
+    ihWidthSmearFunc = new TF1("ihWidthSmearFunc","pol2(0)");
+    ihWidthSmearFunc->SetParameters(-0.02842,0.1487,-0.09215);
+  }
+}
+//testing
+void initializeIasPeakDiffFunction()
+{
+  //functions should take momentum and return difference in Ih between MC and data (data - MC) JT
+  mcDataIasPeakShiftFunc = new TF1("mcDataIasPeakShiftFunc","pol1(0)");
+  mcDataIasPeakShiftFunc->SetParameters(0.153287,-0.178339);
+}
+//testing
+void initializeIasWidthDiffFunction()
+{
+  iasWidthSmearFunc = new TF1("iasWidthSmearFunc","pol1(0)");
+  iasWidthSmearFunc->SetParameters(-0.04935,0.07484);
 }
 
 void initializeIasShiftGraphs(std::string rootFileName)
@@ -239,18 +331,32 @@ double getIhWidthCorrection(double hscpBeta)
   return ihWidthSmearFunc->Eval(protonP);
 }
 
-double getIasPeakCorrection(int nom, double hscpBeta)
+double getIasPeakCorrection(int nom, double hscpBeta, bool is8TeV)
 {
   int nomSlice = getSliceFromNoM(nom);
   double protonP = getEquivProtonP(hscpBeta);
-  return mcDataIasPeakShiftGraphs[nomSlice]->Eval(protonP);
+  if(!is8TeV)
+  {
+    return mcDataIasPeakShiftGraphs[nomSlice]->Eval(protonP);
+  }
+  else
+  {
+    return mcDataIasPeakShiftFunc->Eval(protonP);
+  }
 }
 
-double getIasWidthCorrection(int nom, double hscpBeta)
+double getIasWidthCorrection(int nom, double hscpBeta, bool is8TeV)
 {
   int nomSlice = getSliceFromNoM(nom);
   double protonP = getEquivProtonP(hscpBeta);
-  return mcDataIasWidthShiftGraphs[nomSlice]->Eval(protonP);
+  if(!is8TeV)
+  {
+    return mcDataIasWidthShiftGraphs[nomSlice]->Eval(protonP);
+  }
+  else
+  {
+    return iasWidthSmearFunc->Eval(protonP);
+  }
 }
 
 
@@ -372,8 +478,10 @@ int main(int argc, char ** argv)
   pVsIhToFSBHist = fs.make<TH2F>(pVsIhToFSBName.c_str(),pVsIhToFSBTitle.c_str(),400,0,10,100,0,1000);
   pVsIhToFSBHist->Sumw2();
   // Ih vs Ias
-  TH2F* ihVsIasHist = fs.make<TH2F>("ihVsIas","Ih vs. Ias;;MeV/cm",400,0,1,400,0,10);
-  ihVsIasHist->Sumw2();
+//  TH2F* ihVsIasHist = fs.make<TH2F>("ihVsIas","Ih vs. Ias;;MeV/cm",400,0,1,400,0,10);
+//  ihVsIasHist->Sumw2();
+//  TH2F* ihVsIasHist_shifted = fs.make<TH2F>("ihVsIas_shifted","Ih vs. Ias;;MeV/cm",400,0,1,400,0,10);
+//  ihVsIasHist_shifted->Sumw2();
   // p vs NoM
   //TH2F* pVsNoMHist = fs.make<TH2F>("pVsNoM","Track P vs. NoM (Ias);;GeV",50,0,50,100,0,1000);
   // p vs NoM, central eta only
@@ -551,13 +659,56 @@ int main(int argc, char ** argv)
   RooRealVar rooVarEvent("rooVarEvent","event",0,4294967295);
   RooRealVar rooVarPUWeight("rooVarPUWeight","puWeight",-std::numeric_limits<double>::max(),std::numeric_limits<double>::max());
   RooRealVar rooVarPUSystFactor("rooVarPUSystFactor","puSystFactor",-std::numeric_limits<double>::max(),std::numeric_limits<double>::max());
-  RooDataSet* rooDataSetCandidates = fs.make<RooDataSet>("rooDataSetCandidates","rooDataSetCandidates",
+
+//  RooDataSet* rooDataSetCandidates = fs.make<RooDataSet>("rooDataSetCandidates","rooDataSetCandidates",
+//      RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarRun,rooVarLumiSection,rooVarEvent));
+//      //RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarIp));
+//  // Ip no longer included
+//  RooDataSet* rooDataSetOneCandidatePerEvent = fs.make<RooDataSet>("rooDataSetOneCandidatePerEvent",
+//      "rooDataSetOneCandidatePerEvent",
+//      RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarRun,rooVarLumiSection,rooVarEvent));
+//  // keep track of pileup weights
+  TTree *rooDataSetCandidatesTree = fs.make<TTree>("rooDataSetCandidatesTree","rooDataSetCandidatesTree");
+  TTree *rooDataSetOneCandidatePerEventTree = fs.make<TTree>("rooDataSetOneCandidatePerEventTree","rooDataSetOneCandidatePerEventTree");
+  //testing
+  float ias_;
+  float ih_;
+  float trackP_;
+  float trackPt_;
+  float iasNoM_;
+  float trackEta_;
+  float eventNumber_;
+  float lumiSection_;
+  float runNumber_;
+  rooDataSetCandidatesTree->Branch("ias_",&ias_,"ias_");
+  rooDataSetCandidatesTree->Branch("ih_",&ih_,"ih_");
+  rooDataSetCandidatesTree->Branch("trackP_",&trackP_,"trackP_");
+  rooDataSetCandidatesTree->Branch("trackPt_",&trackPt_,"trackPt_");
+  rooDataSetCandidatesTree->Branch("iasNoM_",&iasNoM_,"iasNoM_");
+  rooDataSetCandidatesTree->Branch("trackEta_",&trackEta_,"trackEta_");
+  rooDataSetCandidatesTree->Branch("runNumber_",&runNumber_,"runNumber_");
+  rooDataSetCandidatesTree->Branch("lumiSection_",&lumiSection_,"lumiSection_");
+  rooDataSetCandidatesTree->Branch("eventNumber_",&eventNumber_,"eventNumber_");
+
+  rooDataSetOneCandidatePerEventTree->Branch("ias_",&ias_,"ias_");
+  rooDataSetOneCandidatePerEventTree->Branch("ih_",&ih_,"ih_");
+  rooDataSetOneCandidatePerEventTree->Branch("trackP_",&trackP_,"trackP_");
+  rooDataSetOneCandidatePerEventTree->Branch("trackPt_",&trackPt_,"trackPt_");
+  rooDataSetOneCandidatePerEventTree->Branch("iasNoM_",&iasNoM_,"iasNoM_");
+  rooDataSetOneCandidatePerEventTree->Branch("trackEta_",&trackEta_,"trackEta_");
+  rooDataSetOneCandidatePerEventTree->Branch("runNumber_",&runNumber_,"runNumber_");
+  rooDataSetOneCandidatePerEventTree->Branch("lumiSection_",&lumiSection_,"lumiSection_");
+  rooDataSetOneCandidatePerEventTree->Branch("eventNumber_",&eventNumber_,"eventNumber_");
+  RooDataSet* rooDataSetCandidates = new RooDataSet ("rooDataSetCandidates","rooDataSetCandidates",
       RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarRun,rooVarLumiSection,rooVarEvent));
       //RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarIp));
   // Ip no longer included
   RooDataSet* rooDataSetOneCandidatePerEvent = fs.make<RooDataSet>("rooDataSetOneCandidatePerEvent",
       "rooDataSetOneCandidatePerEvent",
       RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarRun,rooVarLumiSection,rooVarEvent));
+//  RooDataSet* rooDataSetOneCandidatePerEvent = new RooDataSet ("rooDataSetOneCandidatePerEvent",
+//      "rooDataSetOneCandidatePerEvent",
+//      RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarRun,rooVarLumiSection,rooVarEvent));
   // keep track of pileup weights
   RooDataSet* rooDataSetPileupWeights = fs.make<RooDataSet>("rooDataSetPileupWeights","rooDataSetPileupWeights",
       RooArgSet(rooVarRun,rooVarLumiSection,rooVarEvent,rooVarPUWeight,rooVarPUSystFactor));
@@ -588,25 +739,64 @@ int main(int argc, char ** argv)
   //for initializing PileUpReweighting utility.
   const float TrueDist2011_f[35] = {0.00285942, 0.0125603, 0.0299631, 0.051313, 0.0709713, 0.0847864, 0.0914627, 0.0919255, 0.0879994, 0.0814127, 0.0733995, 0.0647191, 0.0558327, 0.0470663, 0.0386988, 0.0309811, 0.0241175, 0.018241, 0.0133997, 0.00956071, 0.00662814, 0.00446735, 0.00292946, 0.00187057, 0.00116414, 0.000706805, 0.000419059, 0.000242856, 0.0001377, 7.64582e-05, 4.16101e-05, 2.22135e-05, 1.16416e-05, 5.9937e-06, 5.95542e-06};//from 2011 Full dataset
   const float Pileup_MC[35]= {1.45346E-01, 6.42802E-02, 6.95255E-02, 6.96747E-02, 6.92955E-02, 6.84997E-02, 6.69528E-02, 6.45515E-02, 6.09865E-02, 5.63323E-02, 5.07322E-02, 4.44681E-02, 3.79205E-02, 3.15131E-02, 2.54220E-02, 2.00184E-02, 1.53776E-02, 1.15387E-02, 8.47608E-03, 6.08715E-03, 4.28255E-03, 2.97185E-03, 2.01918E-03, 1.34490E-03, 8.81587E-04, 5.69954E-04, 3.61493E-04, 2.28692E-04, 1.40791E-04, 8.44606E-05, 5.10204E-05, 3.07802E-05, 1.81401E-05, 1.00201E-05, 5.80004E-06};
-  edm::LumiReWeighting LumiWeightsMC_;
+  const float TrueDist2012_f[60] = {6.53749e-07 ,1.73877e-06 ,4.7972e-06 ,1.57721e-05 ,2.97761e-05 ,0.000162201 ,0.000931952 ,0.00272619 ,0.0063166 ,0.0128901 ,0.0229009 ,0.0355021 ,0.045888 ,0.051916 ,0.0555598 ,0.0580188 ,0.059286 ,0.0596022 ,0.059318 ,0.0584214 ,0.0570249 ,0.0553875 ,0.0535731 ,0.0512788 ,0.0480472 ,0.0436582 ,0.0382936 ,0.0323507 ,0.0262419 ,0.0203719 ,0.0151159 ,0.0107239 ,0.00727108 ,0.00470101 ,0.00288906 ,0.00168398 ,0.000931041 ,0.000489695 ,0.000246416 ,0.00011959 ,5.65558e-05 ,2.63977e-05 ,1.23499e-05 ,5.89242e-06 ,2.91502e-06 ,1.51247e-06 ,8.25545e-07 ,4.71584e-07 ,2.79203e-07 ,1.69571e-07 ,1.04727e-07 ,6.53264e-08 ,4.09387e-08 ,2.56621e-08 ,1.60305e-08 ,9.94739e-09 ,6.11516e-09 ,3.71611e-09 ,2.22842e-09 ,1.3169e-09};  // MB xsec = 69.3mb
+  const float TrueDist2012_XSecShiftUp_f[60] = {6.53749e-07 ,1.73877e-06 ,4.7972e-06 ,1.57721e-05 ,2.97761e-05 ,0.000162201 ,0.000931952 ,0.00272619 ,0.0063166 ,0.0128901 ,0.0229009 ,0.0355021 ,0.045888 ,0.051916 ,0.0555598 ,0.0580188 ,0.059286 ,0.0596022 ,0.059318 ,0.0584214 ,0.0570249 ,0.0553875 ,0.0535731 ,0.0512788 ,0.0480472 ,0.0436582 ,0.0382936 ,0.0323507 ,0.0262419 ,0.0203719 ,0.0151159 ,0.0107239 ,0.00727108 ,0.00470101 ,0.00288906 ,0.00168398 ,0.000931041 ,0.000489695 ,0.000246416 ,0.00011959 ,5.65558e-05 ,2.63977e-05 ,1.23499e-05 ,5.89242e-06 ,2.91502e-06 ,1.51247e-06 ,8.25545e-07 ,4.71584e-07 ,2.79203e-07 ,1.69571e-07 ,1.04727e-07 ,6.53264e-08 ,4.09387e-08 ,2.56621e-08 ,1.60305e-08 ,9.94739e-09 ,6.11516e-09 ,3.71611e-09 ,2.22842e-09 ,1.3169e-09}; // MB xsec = 73.5mb; observed in Z-->MuMu see https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJSONFileforData#Calculating_Your_Pileup_Distribu
+//  const   float TrueDist2012_XSecShiftDown_f[60] = {6.53749e-07 ,1.73877e-06 ,4.7972e-06 ,1.57721e-05 ,2.97761e-05 ,0.000162201 ,0.000931952 ,0.00272619 ,0.0063166 ,0.0128901 ,0.0229009 ,0.0355021 ,0.045888 ,0.051916 ,0.0555598 ,0.0580188 ,0.059286 ,0.0596022 ,0.059318 ,0.0584214 ,0.0570249 ,0.0553875 ,0.0535731 ,0.0512788 ,0.0480472 ,0.0436582 ,0.0382936 ,0.0323507 ,0.0262419 ,0.0203719 ,0.0151159 ,0.0107239 ,0.00727108 ,0.00470101 ,0.00288906 ,0.00168398 ,0.000931041 ,0.000489695 ,0.000246416 ,0.00011959 ,5.65558e-05 ,2.63977e-05 ,1.23499e-05 ,5.89242e-06 ,2.91502e-06 ,1.51247e-06 ,8.25545e-07 ,4.71584e-07 ,2.79203e-07 ,1.69571e-07 ,1.04727e-07 ,6.53264e-08 ,4.09387e-08 ,2.56621e-08 ,1.60305e-08 ,9.94739e-09 ,6.11516e-09 ,3.71611e-09 ,2.22842e-09 ,1.3169e-09}; // MB xsec = 65.835mb
+  const float Pileup_MC_Summer2012[60] = { 2.560E-06, 5.239E-06, 1.420E-05, 5.005E-05, 1.001E-04, 2.705E-04, 1.999E-03, 6.097E-03, 1.046E-02, 1.383E-02, 1.685E-02, 2.055E-02, 2.572E-02, 3.262E-02, 4.121E-02, 4.977E-02, 5.539E-02, 5.725E-02, 5.607E-02, 5.312E-02, 5.008E-02, 4.763E-02, 4.558E-02, 4.363E-02, 4.159E-02, 3.933E-02, 3.681E-02, 3.406E-02, 3.116E-02, 2.818E-02, 2.519E-02, 2.226E-02, 1.946E-02, 1.682E-02, 1.437E-02, 1.215E-02, 1.016E-02, 8.400E-03, 6.873E-03, 5.564E-03, 4.457E-03, 3.533E-03, 2.772E-03, 2.154E-03, 1.656E-03, 1.261E-03, 9.513E-04, 7.107E-04, 5.259E-04, 3.856E-04, 2.801E-04, 2.017E-04, 1.439E-04, 1.017E-04, 7.126E-05, 4.948E-05, 3.405E-05, 2.322E-05, 1.570E-05, 5.005E-06};
+
+  edm::LumiReWeighting LumiWeightsMC;
+  edm::LumiReWeighting LumiWeightsMCSyst;
   std::vector<float> BgLumiMC; //MC                                           
-  std::vector<float> TrueDist2011;  
+  std::vector<float> TrueDist;  
+  std::vector< float > TrueDistSyst;
   //initialize LumiReWeighting
-  for(int i=0; i<35; ++i)
-    BgLumiMC.push_back(Pileup_MC[i]);
-  for(int i=0; i<35; ++i)
-    TrueDist2011.push_back(TrueDist2011_f[i]);
-  LumiWeightsMC_ = edm::LumiReWeighting(BgLumiMC, TrueDist2011);
-  bool Iss4pileup = true; // seems to be true for all signal MC
+  if(!is8TeV_)
+  {
+    for(int i=0; i<35; ++i)
+      BgLumiMC.push_back(Pileup_MC[i]);
+  }
+  else
+  {
+    for(int i=0; i<60; ++i) 
+      BgLumiMC.push_back(Pileup_MC_Summer2012[i]);
+  }
+  if(!is8TeV_)
+  {
+    for(int i=0; i<35; ++i)
+      TrueDist.push_back(TrueDist2011_f[i]);
+  }
+  else
+  {
+    for(int i=0; i<60; ++i) 
+      TrueDist.push_back(TrueDist2012_f[i]);
+    for(int i=0; i<60; ++i) 
+      TrueDistSyst.push_back(TrueDist2012_XSecShiftUp_f[i]);
+  }
+  LumiWeightsMC = edm::LumiReWeighting(BgLumiMC, TrueDist);
+  LumiWeightsMCSyst = edm::LumiReWeighting(BgLumiMC, TrueDistSyst);
+  //testing - not sure what this s4 or s10 means
+  bool IsS4pileup = false;
+  bool IsS10pileup = false;
+  if(!is8TeV_)
+  {
+    IsS4pileup = true; // seems to be true for all 2011 signal MC
+  }
+  if(is8TeV_)
+  {
+    IsS10pileup = true; // seems to be true for all 2012 signal MC
+  }
+
   reweight::PoissonMeanShifter PShift_(0.6);//0.6 for upshift, -0.6 for downshift
 
   // initialize ih shifting functions
-  initializeIhPeakDiffFunctions(mcDataIhPeakShiftFuncs,8);
-  initializeIhWidthDiffFunction();
+  initializeIhPeakDiffFunctions(mcDataIhPeakShiftFuncs,8,is8TeV_);
+  initializeIhWidthDiffFunction(is8TeV_);
 
   // initialize ias shifting functions
-  std::string mcDataIasDiffGraphsRootFile = "iasDataMCDiffsCombined.may24.root"; // produced with my own macro (on laptop dedxSystematics dir)
+  std::string mcDataIasDiffGraphsRootFile = "iasDataMCDiffsCombined.may24.root"; // produced with my (SC) own macro (on laptop dedxSystematics dir)
   initializeIasShiftGraphs(mcDataIasDiffGraphsRootFile);
+  initializeIasWidthDiffFunction(); //testing for 8 TeV
+  initializeIasPeakDiffFunction(); //testing for 8 TeV
 
   double sampleWeight = 1;
   int period = 0;
@@ -622,7 +812,7 @@ int main(int argc, char ** argv)
       TFile* inFile = TFile::Open(inputHandler_.files()[iFile].c_str());
       if( inFile )
       {
-        if(inputHandler_.files()[iFile].find("BX1") != string::npos)
+        if(inputHandler_.files()[iFile].find("BX1") != string::npos || is8TeV_)
         {
           std::cout << "Found BX1-->period = 1" << std::endl;
           period = 1;
@@ -636,42 +826,15 @@ int main(int argc, char ** argv)
           if(maxEvents_>0 ? ievt+1>maxEvents_ : false) break;
 
           // Get PU Weight
-          fwlite::Handle<std::vector<PileupSummaryInfo> > PupInfo;
-          PupInfo.getByLabel(ev, "addPileupInfo");
-          if(!PupInfo.isValid())
+          double PUWeight_thisevent;
+          double PUSystFactor;
+          if(IsS4pileup)
           {
-            std::cout << "PileupSummaryInfo Collection NotFound" << std::endl;
-            return 1.0;
+            PUWeight_thisevent = GetPUWeight(ev, "S4", PUSystFactor, LumiWeightsMC, LumiWeightsMCSyst);
           }
-          double PUWeight_thisevent = 1;
-          double PUSystFactor = 1;
-          std::vector<PileupSummaryInfo>::const_iterator PVI;
-          int npv = -1;
-          if(Iss4pileup)
+          if(IsS10pileup)
           {
-            float sum_nvtx = 0;
-            for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI)
-            {
-              npv = PVI->getPU_NumInteractions();
-              sum_nvtx += float(npv);
-            }
-            float ave_nvtx = sum_nvtx/3.;
-            PUWeight_thisevent = LumiWeightsMC_.weight( ave_nvtx );
-            PUSystFactor = PShift_.ShiftWeight( ave_nvtx );
-          }
-          else
-          {
-            for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI)
-            {
-              int BX = PVI->getBunchCrossing();
-              if(BX == 0)
-              {
-                npv = PVI->getPU_NumInteractions();
-                continue;
-              }
-            }
-            PUWeight_thisevent = LumiWeightsMC_.weight( npv );
-            PUSystFactor = PShift_.ShiftWeight( npv );
+            PUWeight_thisevent = GetPUWeight(ev, "S10", PUSystFactor, LumiWeightsMC, LumiWeightsMCSyst);
           }
           if(ievt % 100 == 0)
             std::cout << "ientry=" << ievt << ", puwt=" << PUWeight_thisevent << ", NMCevents="
@@ -689,14 +852,14 @@ int main(int argc, char ** argv)
       if(maxEvents_>0 ? ievt+1>maxEvents_ : false) break;
     } // end file loop
     sampleWeight = GetSampleWeight(integratedLumi_,integratedLumiBeforeTriggerChange_,
-        signalEventCrossSection_,numPUReweightedMCEvents,period);
+        signalEventCrossSection_,numPUReweightedMCEvents,period,is8TeV_);
     rooVarSampleWeight = sampleWeight;
 
   } // is mc
   std::cout << "NumPUReweightedMCEvents: " << numPUReweightedMCEvents << std::endl;
 
   std::cout << "numTreeEntries: " << ievt << std::endl;
-  std::cout << "Iss4pileup: " << Iss4pileup << std::endl;
+  std::cout << "IsS4pileup: " << IsS4pileup << std::endl;
   std::cout << "Int lumi = " << integratedLumi_ << " int lumi bef. trig. change = " << 
     integratedLumiBeforeTriggerChange_ << std::endl;
   std::cout << "Cross section = " << signalEventCrossSection_ << std::endl;
@@ -773,48 +936,19 @@ int main(int argc, char ** argv)
         std::vector<reco::GenParticle> genColl;
         if(isMC_)
         {
-          std::cout << "Point A" << std::endl;
           genCollHandle.getByLabel(ev, "genParticles");
-          std::cout << "Point B" << std::endl;
           if(!genCollHandle.isValid()){printf("GenParticle Collection NotFound\n");continue;}
           genColl = *genCollHandle;
             // Get PU Weight
-            fwlite::Handle<std::vector<PileupSummaryInfo> > PupInfo;
-            PupInfo.getByLabel(ev, "addPileupInfo");
-            if(!PupInfo.isValid())
+            double PUWeight_thisevent;
+            double PUSystFactor;
+            if(IsS4pileup)
             {
-              std::cout << "PileupSummaryInfo Collection NotFound" << std::endl;
-              return 1.0;
+              PUWeight_thisevent = GetPUWeight(ev, "S4", PUSystFactor, LumiWeightsMC, LumiWeightsMCSyst);
             }
-            double PUWeight_thisevent = 1;
-            double PUSystFactor = 1;
-            std::vector<PileupSummaryInfo>::const_iterator PVI;
-            int npv = -1;
-            if(Iss4pileup)
+            if(IsS10pileup)
             {
-              float sum_nvtx = 0;
-              for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI)
-              {
-                npv = PVI->getPU_NumInteractions();
-                sum_nvtx += float(npv);
-              }
-              float ave_nvtx = sum_nvtx/3.;
-              PUWeight_thisevent = LumiWeightsMC_.weight( ave_nvtx );
-              PUSystFactor = PShift_.ShiftWeight( ave_nvtx );
-            }
-            else
-            {
-              for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI)
-              {
-                int BX = PVI->getBunchCrossing();
-                if(BX == 0)
-                {
-                  npv = PVI->getPU_NumInteractions();
-                  continue;
-                }
-              }
-              PUWeight_thisevent = LumiWeightsMC_.weight( npv );
-              PUSystFactor = PShift_.ShiftWeight( npv );
+              PUWeight_thisevent = GetPUWeight(ev, "S10", PUSystFactor, LumiWeightsMC, LumiWeightsMCSyst);
             }
             eventWeight = sampleWeight * PUWeight_thisevent;
             if(ievt < 100)
@@ -924,6 +1058,7 @@ int main(int argc, char ** argv)
             if(numSeenHSCPThisEvt==2)
               numEventsWithTwoHSCPSeenMuonTrigger++;
           }
+          //TODO fix this for 8 TeV
           if(passesTrigger(ev,false,true,is8TeV_)) // consider MET trig only
           {
             if(numSeenHSCPThisEvt==1)
@@ -1001,7 +1136,7 @@ int main(int argc, char ** argv)
 
           // apply preselections, not considering ToF
           //if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,is8TeV_,beforePreselectionPlots))
-          if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,true,beforePreselectionPlots))
+//          if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,true,beforePreselectionPlots))
           if(!passesPreselection(hscp,dedxSObj,dedxMObj,tof,dttof,csctof,ev,false,is8TeV_,beforePreselectionPlots))
             continue;
 
@@ -1026,8 +1161,8 @@ int main(int argc, char ** argv)
             double beta = trackP/sqrt(pow(trackP,2)+pow(genMass,2));
             // ias shift
             //shiftedIas = ias + myRandom.Gaus(0,0.083) + 0.015; // from YK results Nov 21 2011 hypernews thread
-            double iasPeakShift = getIasPeakCorrection(iasNoM,beta);
-            double iasWidthShift = getIasWidthCorrection(iasNoM,beta);
+            double iasPeakShift = getIasPeakCorrection(iasNoM,beta,is8TeV_);
+            double iasWidthShift = getIasWidthCorrection(iasNoM,beta,is8TeV_);
             shiftedIas = ias + iasPeakShift + myRandom.Gaus(0,iasWidthShift);
             // ih shift
             //shiftedIh = ih*1.036; // from SIC results, Nov 10 2011 HSCP meeting
@@ -1101,6 +1236,12 @@ int main(int argc, char ** argv)
           afterPreselectionPlots.iasNoMHist->Fill(iasNoM);
           afterPreselectionPlots.ihVsIasHist->Fill(ias,ih);
           afterPreselectionPlots.pVsNoMHist->Fill(iasNoM,trackP);
+          if(isMC_)
+          {
+            afterPreselectionPlots.pVsIasHist_shifted->Fill(shiftedIas,trackP);
+            afterPreselectionPlots.pVsIhHist_shifted->Fill(shiftedIh,trackP);
+            afterPreselectionPlots.ihVsIasHist_shifted->Fill(shiftedIas,shiftedIh);
+          }
 //          float massSqr = (ih-dEdx_c_)*pow(trackP,2)/dEdx_k_;
           if(massSqr >= 0)
             afterPreselectionPlots.massHist->Fill(sqrt(massSqr));
@@ -1303,6 +1444,18 @@ int main(int argc, char ** argv)
           rooVarEvent = eventNumber;
           rooDataSetCandidates->add(RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarLumiSection,
                 rooVarRun,rooVarEvent));
+//          std::cout << "Ias: " << ias << std::endl;
+          ias_ = ias;
+          ih_ = ih;
+          trackP_ = trackP;
+          trackPt_ = trackPt;
+          iasNoM_ = iasNoM;
+          trackEta_ = trackEta;
+          lumiSection_ = lumiSection;
+          runNumber_ = runNumber;
+          eventNumber_ = eventNumber;
+          rooDataSetCandidatesTree->Fill();
+//          rooDataSetTree->Print();
           if(ias > tempIas)
           {
             tempIas = ias;
@@ -1369,6 +1522,16 @@ int main(int argc, char ** argv)
           rooVarEvent = tempEvent;
           rooDataSetOneCandidatePerEvent->add(RooArgSet(rooVarIas,rooVarIh,rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarLumiSection,
                 rooVarRun,rooVarEvent));
+          ias_ = tempIas;
+          ih_ = tempIh;
+          trackP_ = tempP;
+          trackPt_ = tempPt;
+          iasNoM_ = tempNoMias;
+          trackEta_ = tempEta;
+          lumiSection_ = tempLumiSection;
+          runNumber_ = tempRun;
+          eventNumber_ = tempEvent;
+          rooDataSetOneCandidatePerEventTree->Fill();
           if(isMC_)
           {
             //cout << "INFO: insert event - run: " << rooVarRun.getVal() << " lumiSec: " << rooVarLumiSection.getVal()
@@ -1433,7 +1596,6 @@ int main(int argc, char ** argv)
     if(maxEvents_>0 ? ievt+1>maxEvents_ : false) break;
   }
   // end of file/event loop
-  
   afterPreselectionPlots.pDistributionHist->Scale(scaleFactor_);
 
   rooVarNumGenHSCPEvents = numGenHSCPEvents;

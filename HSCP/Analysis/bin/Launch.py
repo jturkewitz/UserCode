@@ -26,25 +26,21 @@ ModelListToys = []
 PoiList = [1e-1,8e-2,5e-2,2e-2,8e-3,6e-3,5e-3,4e-3,3e-3,2e-3,1e-3,7.5e-4,5e-4,2.5e-4]
 QueueName = '8nh' # LSF
 ## FOR NOW, CutPt=Std means CutIas Std also!
-CutPt = 50
+#CutPt = 50
+#CutPt = 70 ##double check this but I think in 2012 it is now to 70
+CutPt = 90 ##double check this but I think in 2012 it is now to 70
 CutIas = 0.1
 #CutPt = 'Std'
 #CutIas = 'Std'
 
 #FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Jul31'
-FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Aug15'
-
-#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Jul18'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_stop200N_moreToys_Jul12'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_glu300N400N_moreToys_Jul12'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_moreModels_moreToys_Jul11'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_pureFreqAndInitialFit_overallSigSystOnly_moreModels_Jul10'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_noBGShapeSyst_moreModels_Jul10'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_stdSysts_pureFreqAndInitialFit_moreModels_Jul10'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_1gausSyst_noStatErr_halfIasHalfNoMAsNominal_handleZeroBGSlices_bgShapeVaryFIX_allModelsMoreToys_cutPt50GeVcutIas0.1_allSlices_Jul9'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_1gausSyst_noStatErr_halfIasHalfNoMAsNominal_handleZeroBGSlices_bgShapeVaryFIX_moreModels_cutPt50GeVcutIas0.1_allSlices_Jul5'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_1gausSyst_noStatErr_halfIasHalfNoMAsNominal_handleZeroBGSlices_bgShapeVaryFIX_allModels_cutPt50GeVcutIas0.1_allSlices_Jul5'
-#FarmDirectory = 'FARM_50IasB_emptyB1e-25_1gausSyst_noStatErr_halfIasHalfNoMAsNominal_handleZeroBGSlices_bgShapeVary_allModels_cutPt50GeVcutIas0.1_allSlices_Jul5'
+##FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Aug15'
+#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Mar27'
+#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Apr05'
+#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Apr22'
+#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_May09'
+#FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_testingChangedMcShift_May22'
+FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_testingChangedPileup_Jun13'
 
 ##
 #FarmDirectory+='cutPt'
@@ -58,17 +54,30 @@ FarmDirectory = 'FARM_MakeHSCParticlePlots_data_2012_Aug15'
 #FarmDirectory+=Date
 
 InputDataRootFile = os.getcwd()
-InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_Aug15/outputs/makeHSCParticlePlots_Aug15_Data2012_all.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_Mar27/outputs/makeHSCParticlePlots_Mar27_Data2012.HADDED.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_Apr05/outputs/makeHSCParticlePlots_Apr05_Data2012.HADDED.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_Apr22/outputs/makeHSCParticlePlots_Apr22_Data2012.HADDED.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_May09/outputs/makeHSCParticlePlots_May09.HADDED.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_testingChangedMcShift_May22/outputs/makeHSCParticlePlots_May22.HADDED.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_testingChangedPileup_May28/outputs/makeHSCParticlePlots_May28.HADDED.root'
+InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_testingChangedPileup_May28/outputs/makeHSCParticlePlots_May28.HADDED.root'
+#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_2012_Aug15/outputs/makeHSCParticlePlots_Aug15_Data2012_all.root'
 #InputDataRootFile+='/FARM_MakeHSCParticlePlots_Data_Apr28/outputs/makeHSCParticlePlots_Data2011_all.root'
-#InputDataRootFile+='/FARM_MakeHSCParticlePlots_dataWithTightRPCTrig_absEta_ptErrorPresel_feb6/outputs/makeHSCParticlePlots_feb1_Data2011_all.root'
-#InputDataRootFile+='/FARM_MakeHSCParticlePlots_data_absEta_ptErrorPresel_Mar08/outputs/makeHSCParticlePlots_Data2011_all.root'
-#InputDataRootFile+='/FARM_MakeHSCParticlePlots_absEta_ptErrorPresel_Mar21/outputs/makeHSCParticlePlots_Mar21_Data2011_all.root'
 #sigInput = os.getcwd()
-sigInput='/local/cms/user/turkewitz/HSCP/CMSSW_4_2_8_HSCP/src/HSCP2011/ToyMC/bin/FARM_MakeHSCParticlePlots_Signals_signalJul26/outputs/makeHSCParticlePlots_Jul26_'
+#sigInput='/local/cms/user/turkewitz/HSCP/CMSSW_5_3_8_HSCP/src/HSCP/Analysis/bin/FARM_MakeHSCParticlePlots_data_2012_Mar27/outputs/makeHSCParticlePlots_Mar27_'
+#sigInput='/local/cms/user/turkewitz/HSCP/CMSSW_5_3_8_HSCP/src/HSCP/Analysis/bin/FARM_MakeHSCParticlePlots_data_2012_Apr05/outputs/makeHSCParticlePlots_Apr05_'
+#sigInput='/local/cms/user/turkewitz/HSCP/CMSSW_5_3_8_HSCP/src/HSCP/Analysis/bin/FARM_MakeHSCParticlePlots_data_2012_Apr22/outputs/makeHSCParticlePlots_Apr22_'
+#sigInput='/local/cms/user/turkewitz/HSCP/CMSSW_5_3_8_HSCP/src/HSCP/Analysis/bin/FARM_MakeHSCParticlePlots_data_2012_May09/outputs/makeHSCParticlePlots_May09_'
+sigInput='/local/cms/user/turkewitz/HSCP/CMSSW_5_3_8_HSCP/src/HSCP/Analysis/bin/FARM_MakeHSCParticlePlots_data_2012_testingChangedPileup_May28/outputs/makeHSCParticlePlots_May28_'
 #sigInput+='/FARM_MakeHSCParticlePlots_Signals_Jul06/outputs/makeHSCParticlePlots_Jul06_'
 #IntLumi = 4976 # 1/pb (2011, new pixel measurement)
-IntLumi = 4801 # 1/pb (2012, few runs)
+IntLumi = 18823 # 1/pb (2012)
+#IntLumi = 4976 # 1/pb (2011, new pixel measurement)
+IntLumi = 18823 # 1/pb (2012)
+#IntLumi = 4801 # 1/pb (2012, testing, this needs to be revised)
 #
+##Testing - make the rooDataSet from a TTree
+
 
 OutputIasPredictionDir = os.getcwd()
 OutputIasPredictionDir+="/"
@@ -96,7 +105,7 @@ def printConfiguration():
   elif(CutIas=='Std'):
     print 'Using standard analysis optimized Ias cut only (pt=50)'
   else:
-    print 'Using Pt=50 Ias=',CutIas
+    print 'Using Pt=',CutPt,' Ias=',CutIas
   if(AllSlices):
     print 'Doing all eta/NoM slices'
   else:
@@ -160,7 +169,7 @@ def doIasPredictions():
                                                 BaseCfgMakePred, model.massCut, 50, model.iasCut, AllSlices, RunCondor, QueueName)
     else:
       HSCPMakeIasPredictionsLaunch.SendCluster_Create(FarmDirectory,JobName+model.name+"_",InputDataRootFile,
-                                                BaseCfgMakePred, model.massCut, 50, CutIas, AllSlices, RunCondor, QueueName)
+                                                BaseCfgMakePred, model.massCut, CutPt, CutIas, AllSlices, RunCondor, QueueName)
 
   HSCPMakeIasPredictionsLaunch.SendCluster_Submit()
 
@@ -195,11 +204,11 @@ def doMergeIasPredictions():
   else:
     for model in modelList:
       if(checkForIasPredictions(model.name,model.massCut,CutPt,CutIas)):
-        thisMassCutFiles = glob.glob(OutputIasPredictionDir+'*'+model.name+'_massCut'+str(model.massCut)+'_pt50_ias'+str(CutIas)+'_eta*')
-        thisMassCutFiles.insert(0,OutputIasPredictionDir+'makeIasPredictionsCombined_'+model.name+'_massCut'+str(model.massCut)+'_ptCut50_ias'+str(CutIas)+'.root')
+        thisMassCutFiles = glob.glob(OutputIasPredictionDir+'*'+model.name+'_massCut'+str(model.massCut)+'_pt'+str(CutPt)+'_ias'+str(CutIas)+'_eta*')
+        thisMassCutFiles.insert(0,OutputIasPredictionDir+'makeIasPredictionsCombined_'+model.name+'_massCut'+str(model.massCut)+'_ptCut'+str(CutPt)+'_ias'+str(CutIas)+'.root')
         thisMassCutFiles.insert(0,"-f")
         thisMassCutFiles.insert(0,"hadd")
-        print 'Merging files for ' + model.name + ' mass cut = ' + str(model.massCut) + ' pt cut = 50 ias cut = ' + str(CutIas)
+        print 'Merging files for ' + model.name + ' mass cut = ' + str(model.massCut) + ' pt cut = ' + str(CutPt) + ' ias cut = ' + str(CutIas)
         call(thisMassCutFiles,stdout = fnull)
       else:
         print 'ERROR: Ias predictions for',model.name,'not found!'
@@ -224,10 +233,10 @@ def doCopyIasPredictions():
       call(thisMassCutFiles)
   else:
     for model in modelList:
-      thisMassCutFiles = glob.glob(OutputIasPredictionDir+'*'+model.name+'_massCut'+str(model.massCut)+'_pt50_ias'+str(CutIas)+'_eta*')
-      thisMassCutFiles.append(OutputIasPredictionDir+'makeIasPredictionsCombined_'+model.name+'_massCut'+str(model.massCut)+'_ptCut50_ias'+str(CutIas)+'.root')
+      thisMassCutFiles = glob.glob(OutputIasPredictionDir+'*'+model.name+'_massCut'+str(model.massCut)+'_pt'+str(CutPt)+'_ias'+str(CutIas)+'_eta*')
+      thisMassCutFiles.append(OutputIasPredictionDir+'makeIasPredictionsCombined_'+model.name+'_massCut'+str(model.massCut)+'_ptCut'+str(CutPt)+'_ias'+str(CutIas)+'.root')
       thisMassCutFiles.insert(0,"cp")
-      print 'Copy file for ' + model.name + ' mass cut = ' + str(model.massCut) + ' pt cut = 50 ias cut = ' + str(CutIas)
+      print 'Copy file for ' + model.name + ' mass cut = ' + str(model.massCut) + ' pt cut = ' + str(CutPt) + ' ias cut = ' + str(CutIas)
       call(thisMassCutFiles)
     
 def doScaledPredictions():
@@ -239,7 +248,8 @@ def doScaledPredictions():
                                                            BaseCombXML, BaseChXMLSig, BaseCombXMLSig, AllSlices, RunCondor, QueueName)
                                                            
   for model in modelList:
-    looseRPCFileName = sigInput+model.name+'BX1.root'
+    looseRPCFileName = sigInput+model.name+'.root'
+##    looseRPCFileName = sigInput+model.name+'BX1.root'
     tightRPCFileName = sigInput+model.name+'.root'
     if(CutPt=='Std'):
       HSCPMakeScaledPredictionsLaunch.SendCluster_Push(
@@ -249,7 +259,7 @@ def doScaledPredictions():
           bgInput+model.name+'_massCut',looseRPCFileName,tightRPCFileName,model.name,model.massCut,model.iasCut,50,model.crossSection)
     else:
       HSCPMakeScaledPredictionsLaunch.SendCluster_Push(
-          bgInput+model.name+'_massCut',looseRPCFileName,tightRPCFileName,model.name,model.massCut,CutIas,50,model.crossSection)
+          bgInput+model.name+'_massCut',looseRPCFileName,tightRPCFileName,model.name,model.massCut,CutIas,CutPt,model.crossSection)
 
   HSCPMakeScaledPredictionsLaunch.SendCluster_Submit()
 
@@ -361,8 +371,6 @@ def combineHypoTestResults():
   # for combining significance test with toys -- CLs
   doSignificanceOutputDir = FarmDirectory+'/outputs/doSignificance/'
   for model in ModelListToys:
-    for poi in PoiList:
-      doSignificanceMerge = []
       doSignificanceMerge.append(os.getcwd()+'/combineHypoTestResults')
       doSignificanceMerge.append(doSignificanceOutputDir)
       doSignificanceMerge.append(model.name)

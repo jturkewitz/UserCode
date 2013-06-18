@@ -290,6 +290,7 @@ int main(int argc, char ** argv)
   int nomMax_ (ana.getParameter<int>("NoMMax"));
 
   // <ih> as a function of ias from MinBias data
+  // TODO update for 8 TeV data
   TF1* avgIhFromIasFunc = new TF1("avgIhFromIasFunc","pol3(0)",0,1);
   avgIhFromIasFunc->SetParameters(2.782,7.069,-11.93,12.83);
 
@@ -349,12 +350,18 @@ int main(int argc, char ** argv)
 
   //TODO move to common file
   // RooFit observables and dataset
-  RooRealVar rooVarIas("rooVarIas","ias",0,1);
-  RooRealVar rooVarIh("rooVarIh","ih",0,15);
-  RooRealVar rooVarP("rooVarP","p",0,5000);
-  RooRealVar rooVarPt("rooVarPt","pt",0,5000);
-  RooRealVar rooVarNoMias("rooVarNoMias","nom",0,30);
-  RooRealVar rooVarEta("rooVarEta","eta",-2.5,2.5);
+//  RooRealVar rooVarIas("rooVarIas","ias",0,1);
+//  RooRealVar rooVarIh("rooVarIh","ih",0,15);
+//  RooRealVar rooVarP("rooVarP","p",0,5000);
+//  RooRealVar rooVarPt("rooVarPt","pt",0,5000);
+//  RooRealVar rooVarNoMias("rooVarNoMias","nom",0,30);
+//  RooRealVar rooVarEta("rooVarEta","eta",-2.5,2.5);
+  RooRealVar ias_("ias_","ias",0,1);
+  RooRealVar ih_("ih_","ih",0,15);
+  RooRealVar trackP_("trackP_","p",0,5000);
+  RooRealVar trackPt_("trackPt_","pt",0,5000);
+  RooRealVar iasNoM_("iasNoM_","nom",0,30);
+  RooRealVar trackEta_("trackEta_","eta",-2.5,2.5);
   TFile* inFile = TFile::Open(inputHandler_.files()[0].c_str());
   if(!inFile)
   {
@@ -362,7 +369,20 @@ int main(int argc, char ** argv)
     return -2;
   }
 
-  RooDataSet* rooDataSetInput = (RooDataSet*)inFile->Get("rooDataSetCandidates");
+//  RooDataSet* rooDataSetInput = (RooDataSet*)inFile->Get("rooDataSetCandidates");
+  TTree *rooDataSetCandidatesTree = (TTree*)inFile->Get("rooDataSetCandidatesTree");
+//  rooDataSetCandidatesTree->SetBranchStatus("*",0);
+//  rooDataSetCandidatesTree->SetBranchStatus("ias_",1);
+//  rooDataSetCandidatesTree->SetBranchStatus("ih_",1);
+//  rooDataSetCandidatesTree->SetBranchStatus("trackP_",1);
+//  rooDataSetCandidatesTree->SetBranchStatus("trackPt_",1);
+//  rooDataSetCandidatesTree->SetBranchStatus("iasNoM_",1);
+//  rooDataSetCandidatesTree->SetBranchStatus("trackEta_",1);
+//  TFile *newfile = new TFile("small.root","recreate");
+//  TTree *rooDataSetCandidatesTreeReduced = rooDataSetCandidatesTree->CloneTree();
+  RooDataSet* rooDataSetInput = new RooDataSet("rooDataSetCandidates","rooDataSetCandidates",rooDataSetCandidatesTree,
+            RooArgSet(ias_,ih_,trackP_,trackPt_,iasNoM_,trackEta_));
+
   //RooDataSet* rooDataSetInput = (RooDataSet*)inFile->Get("rooDataSetOneCandidatePerEvent");
   if(rooDataSetInput->numEntries() < 1)
   {
@@ -371,28 +391,28 @@ int main(int argc, char ** argv)
   }
 
   std::cout << "Doing ias predictions..." << std::endl;
-  std::string pSBcutString = "rooVarP<";
+  std::string pSBcutString = "trackP_<";
   pSBcutString+=floatToString(pSidebandThreshold);
-  std::string pSearchCutString = "rooVarP>";
+  std::string pSearchCutString = "trackP_>";
   pSearchCutString+=floatToString(pSidebandThreshold);
-  std::string ptSBcutString = "rooVarPt<";
+  std::string ptSBcutString = "trackPt_<";
   ptSBcutString+=floatToString(ptSidebandThreshold);
-  std::string ptSearchCutString = "rooVarPt>";
+  std::string ptSearchCutString = "trackPt_>";
   ptSearchCutString+=floatToString(ptSidebandThreshold);
-  std::string ihSBcutString = "rooVarIh<";
+  std::string ihSBcutString = "ih_<";
   ihSBcutString+=floatToString(ihSidebandThreshold);
-  std::string ihSearchCutString = "rooVarIh>";
+  std::string ihSearchCutString = "ih_>";
   ihSearchCutString+=floatToString(ihSidebandThreshold);
-  std::string iasSBcutString = "rooVarIas<";
+  std::string iasSBcutString = "ias_<";
   iasSBcutString+=floatToString(iasSidebandThreshold);
-  std::string iasSearchCutString = "rooVarIas>";
+  std::string iasSearchCutString = "ias_>";
   iasSearchCutString+=floatToString(iasSidebandThreshold);
   // TESTING CUT OFF PT < 50
-  //RooDataSet* rooDataSetPtCut = (RooDataSet*) rooDataSetInput->reduce(Cut("rooVarPt>50"));
+  //RooDataSet* rooDataSetPtCut = (RooDataSet*) rooDataSetInput->reduce(Cut("trackPt_>50"));
   //std::cout << "INFO: Applying minimum Pt cut of 50" << std::endl;
   RooDataSet* rooDataSetPtCut = (RooDataSet*) rooDataSetInput->Clone();
   //XXX TURN OFF ETA > 1.5
-  RooDataSet* rooDataSetAll = (RooDataSet*) rooDataSetPtCut->reduce(Cut("rooVarEta<1.5&&rooVarEta>-1.5"));
+  RooDataSet* rooDataSetAll = (RooDataSet*) rooDataSetPtCut->reduce(Cut("trackEta_<1.5&&trackEta_>-1.5"));
   std::cout << "INFO: Applying upper eta cut of 1.5" << std::endl;
   delete rooDataSetInput;
   delete rooDataSetPtCut;
@@ -405,10 +425,10 @@ int main(int argc, char ** argv)
     regionA1DataSet = (RooDataSet*)rooDataSetAll->reduce(Cut(pSBcutString.c_str()));
   if(useIasForSideband)
     regionADataSet = (RooDataSet*)regionA1DataSet->reduce(Cut(iasSBcutString.c_str()),
-        SelectVars(RooArgSet(rooVarP,rooVarPt,rooVarEta,rooVarIh,rooVarNoMias)));
+        SelectVars(RooArgSet(trackP_,trackPt_,trackEta_,ih_,iasNoM_)));
   else
     regionADataSet = (RooDataSet*)regionA1DataSet->reduce(Cut(ihSBcutString.c_str()),
-        SelectVars(RooArgSet(rooVarP,rooVarPt,rooVarEta,rooVarIh,rooVarNoMias)));
+        SelectVars(RooArgSet(trackP_,trackPt_,trackEta_,ih_,iasNoM_)));
   delete regionA1DataSet;
   // B ==> low P/Pt, high Ih
   RooDataSet* regionB1DataSet;
@@ -419,22 +439,22 @@ int main(int argc, char ** argv)
     regionB1DataSet = (RooDataSet*)rooDataSetAll->reduce(Cut(pSBcutString.c_str()));
   if(useIasForSideband)
     regionBDataSet = (RooDataSet*)regionB1DataSet->reduce(Cut(iasSearchCutString.c_str()),
-          SelectVars(RooArgSet(rooVarPt,rooVarIh,rooVarIas,rooVarEta,rooVarNoMias)));
+          SelectVars(RooArgSet(trackPt_,ih_,ias_,trackEta_,iasNoM_)));
   else
     regionBDataSet = (RooDataSet*)regionB1DataSet->reduce(Cut(ihSearchCutString.c_str()),
-          SelectVars(RooArgSet(rooVarPt,rooVarIh,rooVarIas,rooVarEta,rooVarNoMias)));
+          SelectVars(RooArgSet(trackPt_,ih_,ias_,trackEta_,iasNoM_)));
   delete regionB1DataSet;
   // C ==> high P/Pt, low Ih
   RooDataSet* dedxSBDataSet;
   RooDataSet* regionCDataSet;
   if(useIasForSideband)
     dedxSBDataSet = (RooDataSet*)rooDataSetAll->reduce(Cut(iasSBcutString.c_str()),
-          SelectVars(RooArgSet(rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarIh)));
+          SelectVars(RooArgSet(trackP_,trackPt_,iasNoM_,trackEta_,ih_)));
   else
     dedxSBDataSet = (RooDataSet*)rooDataSetAll->reduce(Cut(ihSBcutString.c_str()),
-          SelectVars(RooArgSet(rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarIh)));
+          SelectVars(RooArgSet(trackP_,trackPt_,iasNoM_,trackEta_,ih_)));
   //SIC FEB 10 -- cut off p > 1200
-  //RooDataSet* pCutCDataSet = (RooDataSet*)regionC1DataSet->reduce(Cut("rooVarP<1200"));
+  //RooDataSet* pCutCDataSet = (RooDataSet*)regionC1DataSet->reduce(Cut("trackP_<1200"));
   //std::cout << "INFO: Applying max p of 1200 GeV cut in C region." << std::endl;
   std::cout << "INFO: NOT applying max p of 1200 GeV cut in C region." << std::endl;
   if(usePtForSideband)
@@ -451,10 +471,10 @@ int main(int argc, char ** argv)
   RooDataSet* highDeDxDataSet;
   if(useIasForSideband)
     highDeDxDataSet = (RooDataSet*)rooDataSetAll->reduce(Cut(iasSearchCutString.c_str()),
-          SelectVars(RooArgSet(rooVarP,rooVarEta,rooVarNoMias,rooVarIas,rooVarIh)));
+          SelectVars(RooArgSet(trackP_,trackEta_,iasNoM_,ias_,ih_)));
   else
     highDeDxDataSet = (RooDataSet*)rooDataSetAll->reduce(Cut(ihSearchCutString.c_str()),
-          SelectVars(RooArgSet(rooVarP,rooVarEta,rooVarNoMias,rooVarIas,rooVarIh)));
+          SelectVars(RooArgSet(trackP_,trackEta_,iasNoM_,ias_,ih_)));
   delete rooDataSetAll;
 
   // broken
@@ -531,52 +551,52 @@ int main(int argc, char ** argv)
             ceffRegionTracksOverMassCutAvgIhProfileTitle.c_str(),numIasBins,0,1);
 
       // B region dataset
-      std::string nomCutString = "rooVarNoMias>=";
+      std::string nomCutString = "iasNoM_>=";
       nomCutString+=intToString(nom);
-      nomCutString+="&&rooVarNoMias<=";
+      nomCutString+="&&iasNoM_<=";
       nomCutString+=intToString(nom+nomStep-1);
       if(nom==lastLowerNoM) // do nom lastLowerNoM+ in one slice
       {
-        nomCutString = "rooVarNoMias>=";
+        nomCutString = "iasNoM_>=";
         nomCutString+=intToString(lastLowerNoM);
       }
       if(nom==5) // combine 5-6 with next slice
       {
-        nomCutString = "rooVarNoMias>=";
+        nomCutString = "iasNoM_>=";
         nomCutString+=intToString(nom);
-        nomCutString+="&&rooVarNoMias<=";
+        nomCutString+="&&iasNoM_<=";
         nomCutString+=intToString(nom+2*nomStep-1);
       }
-      std::string etaCutString = "(rooVarEta>";
+      std::string etaCutString = "(trackEta_>";
       etaCutString+=floatToString(lowerEta);
-      etaCutString+="&&rooVarEta<";
+      etaCutString+="&&trackEta_<";
       std::string upperEtaLimit;
       upperEtaLimit=floatToString(lowerEta+etaStep);
       etaCutString+=upperEtaLimit;
-      etaCutString+=")||(rooVarEta>-";
+      etaCutString+=")||(trackEta_>-";
       etaCutString+=upperEtaLimit;
-      etaCutString+="&&rooVarEta<-";
+      etaCutString+="&&trackEta_<-";
       etaCutString+=floatToString(lowerEta);
       etaCutString+=")";
       RooDataSet* nomCutBRegionDataSet = (RooDataSet*)regionBDataSet->reduce(Cut(nomCutString.c_str()),
-          SelectVars(RooArgSet(rooVarPt,rooVarIh,rooVarIas,rooVarEta)));
+          SelectVars(RooArgSet(trackPt_,ih_,ias_,trackEta_)));
       RooDataSet* etaCutNomCutBRegionDataSet = (RooDataSet*)nomCutBRegionDataSet->reduce(Cut(etaCutString.c_str()));
       // C region dataset
       // SIC Dec. 23: study shows we can use all NoM slices
       //RooDataSet* nomCutCRegionDataSet = (RooDataSet*)regionCDataSet->reduce(Cut(nomCutString.c_str()));
       RooDataSet* etaCutCRegionDataSet = (RooDataSet*)regionCDataSet->reduce(Cut(etaCutString.c_str()),
-          SelectVars(RooArgSet(rooVarP,rooVarPt,rooVarNoMias,rooVarEta,rooVarIh)));
+          SelectVars(RooArgSet(trackP_,trackPt_,iasNoM_,trackEta_,ih_)));
       RooDataSet* etaCutNomCutCRegionDataSet = (RooDataSet*)etaCutCRegionDataSet->reduce(Cut(nomCutString.c_str()));
       // dE/dx SB data set cut in eta --> used for Ceff region later
       RooDataSet* etaCutDeDxSBDataSet = (RooDataSet*)dedxSBDataSet->reduce(Cut(etaCutString.c_str()),
-          SelectVars(RooArgSet(rooVarP)));
+          SelectVars(RooArgSet(trackP_)));
       // High dE/dx dataset
       RooDataSet* nomCutHighDeDxDataSet = (RooDataSet*)highDeDxDataSet->reduce(Cut(nomCutString.c_str()),
-          SelectVars(RooArgSet(rooVarP,rooVarEta,rooVarIh,rooVarIas)));
+          SelectVars(RooArgSet(trackP_,trackEta_,ih_,ias_)));
       RooDataSet* etaCutNomCutHighDeDxDataSet = (RooDataSet*)nomCutHighDeDxDataSet->reduce(Cut(etaCutString.c_str()));
       // A region dataset
       RooDataSet* etaCutARegionDataSet = (RooDataSet*)regionADataSet->reduce(Cut(etaCutString.c_str()),
-          SelectVars(RooArgSet(rooVarPt,rooVarEta,rooVarIh,rooVarNoMias)));
+          SelectVars(RooArgSet(trackPt_,trackEta_,ih_,iasNoM_)));
       RooDataSet* etaCutNomCutARegionDataSet = (RooDataSet*)etaCutARegionDataSet->reduce(Cut(nomCutString.c_str()));
 
       entriesInARegionHist->Fill(lowerEta+0.01,nom,etaCutNomCutARegionDataSet->numEntries());
@@ -599,10 +619,10 @@ int main(int argc, char ** argv)
        // " D = " << etaCutNomCutDRegionDataSet->numEntries() << std::endl;
 
       const RooArgSet* argSet_A = etaCutNomCutARegionDataSet->get();
-      //RooRealVar* iasData_A = (RooRealVar*)argSet_A->find(rooVarIas.GetName());
-      RooRealVar* ihData_A = (RooRealVar*)argSet_A->find(rooVarIh.GetName());
-      RooRealVar* etaData_A = (RooRealVar*)argSet_A->find(rooVarEta.GetName());
-      RooRealVar* ptData_A = (RooRealVar*)argSet_A->find(rooVarPt.GetName());
+      //RooRealVar* iasData_A = (RooRealVar*)argSet_A->find(ias_.GetName());
+      RooRealVar* ihData_A = (RooRealVar*)argSet_A->find(ih_.GetName());
+      RooRealVar* etaData_A = (RooRealVar*)argSet_A->find(trackEta_.GetName());
+      RooRealVar* ptData_A = (RooRealVar*)argSet_A->find(trackPt_.GetName());
       for(int index=0; index < etaCutNomCutARegionDataSet->numEntries(); ++index)
       {
         etaCutNomCutARegionDataSet->get(index);
@@ -615,10 +635,10 @@ int main(int argc, char ** argv)
       //delete etaData_A;
       //delete ptData_A;
       const RooArgSet* argSet_C1 = etaCutNomCutCRegionDataSet->get();
-      RooRealVar* pData_C1 = (RooRealVar*)argSet_C1->find(rooVarP.GetName());
-      RooRealVar* ptData_C1 = (RooRealVar*)argSet_C1->find(rooVarPt.GetName());
-      RooRealVar* ihData_C1 = (RooRealVar*)argSet_C1->find(rooVarIh.GetName());
-      RooRealVar* etaData_C1 = (RooRealVar*)argSet_C1->find(rooVarEta.GetName());
+      RooRealVar* pData_C1 = (RooRealVar*)argSet_C1->find(trackP_.GetName());
+      RooRealVar* ptData_C1 = (RooRealVar*)argSet_C1->find(trackPt_.GetName());
+      RooRealVar* ihData_C1 = (RooRealVar*)argSet_C1->find(ih_.GetName());
+      RooRealVar* etaData_C1 = (RooRealVar*)argSet_C1->find(trackEta_.GetName());
       for(int index=0; index < etaCutNomCutCRegionDataSet->numEntries(); ++index)
       {
         etaCutNomCutCRegionDataSet->get(index);
@@ -642,12 +662,12 @@ int main(int argc, char ** argv)
       delete nomCutBRegionDataSet;
 
       const RooArgSet* argSet_B = etaCutNomCutBRegionDataSet->get();
-      RooRealVar* ihData_B = (RooRealVar*)argSet_B->find(rooVarIh.GetName());
-      RooRealVar* iasData_B = (RooRealVar*)argSet_B->find(rooVarIas.GetName());
-      RooRealVar* etaData_B = (RooRealVar*)argSet_B->find(rooVarEta.GetName());
-      RooRealVar* ptData_B = (RooRealVar*)argSet_B->find(rooVarPt.GetName());
+      RooRealVar* ihData_B = (RooRealVar*)argSet_B->find(ih_.GetName());
+      RooRealVar* iasData_B = (RooRealVar*)argSet_B->find(ias_.GetName());
+      RooRealVar* etaData_B = (RooRealVar*)argSet_B->find(trackEta_.GetName());
+      RooRealVar* ptData_B = (RooRealVar*)argSet_B->find(trackPt_.GetName());
       //remove eta/nom double checking
-      //RooRealVar* nomData_B = (RooRealVar*)argSet_B->find(rooVarNoMias.GetName());
+      //RooRealVar* nomData_B = (RooRealVar*)argSet_B->find(iasNoM_.GetName());
       // fill b region hist
       for(int index=0; index < etaCutNomCutBRegionDataSet->numEntries(); ++index)
       {
@@ -683,10 +703,10 @@ int main(int argc, char ** argv)
 
       }
       const RooArgSet* argSet_C = etaCutCRegionDataSet->get();
-      RooRealVar* pData_C = (RooRealVar*)argSet_C->find(rooVarP.GetName());
-      RooRealVar* ptData_C = (RooRealVar*)argSet_C->find(rooVarPt.GetName());
-      //RooRealVar* etaData_C = (RooRealVar*)argSet_C->find(rooVarEta.GetName());
-      //RooRealVar* nomData_C = (RooRealVar*)argSet_C->find(rooVarNoMias.GetName());
+      RooRealVar* pData_C = (RooRealVar*)argSet_C->find(trackP_.GetName());
+      RooRealVar* ptData_C = (RooRealVar*)argSet_C->find(trackPt_.GetName());
+      //RooRealVar* etaData_C = (RooRealVar*)argSet_C->find(trackEta_.GetName());
+      //RooRealVar* nomData_C = (RooRealVar*)argSet_C->find(iasNoM_.GetName());
       // fill c region hist
       for(int index=0; index < etaCutCRegionDataSet->numEntries(); ++index)
       {
@@ -713,7 +733,7 @@ int main(int argc, char ** argv)
       }
       // fill ceff region hist
       const RooArgSet* argSet_Ceff = etaCutDeDxSBDataSet->get();
-      RooRealVar* pData_Ceff = (RooRealVar*)argSet_Ceff->find(rooVarP.GetName());
+      RooRealVar* pData_Ceff = (RooRealVar*)argSet_Ceff->find(trackP_.GetName());
       for(int index=0; index < etaCutDeDxSBDataSet->numEntries(); ++index)
       {
         etaCutDeDxSBDataSet->get(index);
@@ -937,9 +957,9 @@ int main(int argc, char ** argv)
 
       // fill D region hist
       const RooArgSet* argSet_highDeDx = etaCutNomCutHighDeDxDataSet->get();
-      RooRealVar* ihData_highDeDx = (RooRealVar*)argSet_highDeDx->find(rooVarIh.GetName());
-      RooRealVar* iasData_highDeDx = (RooRealVar*)argSet_highDeDx->find(rooVarIas.GetName());
-      RooRealVar* pData_highDeDx = (RooRealVar*)argSet_highDeDx->find(rooVarP.GetName());
+      RooRealVar* ihData_highDeDx = (RooRealVar*)argSet_highDeDx->find(ih_.GetName());
+      RooRealVar* iasData_highDeDx = (RooRealVar*)argSet_highDeDx->find(ias_.GetName());
+      RooRealVar* pData_highDeDx = (RooRealVar*)argSet_highDeDx->find(trackP_.GetName());
       for(int index=0; index < etaCutNomCutHighDeDxDataSet->numEntries(); ++index)
       {
         etaCutNomCutHighDeDxDataSet->get(index);
@@ -1038,7 +1058,7 @@ int main(int argc, char ** argv)
 
 // old method
       // make histogram
-      TH1F* etaCutDeDxSBPHist = (TH1F*) etaCutDeDxSBDataSet->createHistogram("rooVarP",10000);
+      TH1F* etaCutDeDxSBPHist = (TH1F*) etaCutDeDxSBDataSet->createHistogram("trackP_",10000);
       // loop over Ih/Ias and calculate average Cj over mass cut in each Ias bin
       for(int index=0; index < etaCutNomCutBRegionDataSet->numEntries(); ++index)
       {
@@ -1085,8 +1105,8 @@ int main(int argc, char ** argv)
 
 // MASS
 //      // mass prediction -- base on C region with lower Pt cut rather than Ceff without P cut
-//      TH1F* etaCutNomCutBRegionIhHist = (TH1F*) etaCutNomCutBRegionDataSet->createHistogram("rooVarIh",5000);
-//      TH1F* etaCutCRegionPHist = (TH1F*) etaCutCRegionDataSet->createHistogram("rooVarP",5000);
+//      TH1F* etaCutNomCutBRegionIhHist = (TH1F*) etaCutNomCutBRegionDataSet->createHistogram("ih_",5000);
+//      TH1F* etaCutCRegionPHist = (TH1F*) etaCutCRegionDataSet->createHistogram("trackP_",5000);
 //      etaCutNomCutBRegionIhHist->Scale(1.0/etaCutNomCutBRegionIhHist->Integral());
 //      etaCutCRegionPHist->Scale(1.0/etaCutCRegionPHist->Integral());
 //      TH1F* massPredictionFixedTmpHist = (TH1F*) massPredictionFixedHist->Clone();

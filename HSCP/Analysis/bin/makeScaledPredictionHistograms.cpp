@@ -114,7 +114,6 @@ RooRealVar rooVarPUSystFactor("rooVarPUSystFactor","puSystFactor",-std::numeric_
 // python config globals
 double massCut_;
 string backgroundPredictionRootFilename_;
-string signalTightRPCRootFilename_;
 string signalLooseRPCRootFilename_;
 string outputRootFilename_;
 double dEdx_k;
@@ -128,6 +127,7 @@ double signalCrossSectionForEff;
 double iasCutForEffAcc;
 bool useIasForSideband;
 bool doMass;
+bool is8TeV = true;
 
 struct EventInfo
 {
@@ -236,6 +236,7 @@ std::string generateFileNameEnd(double massCut, double pSideband, double ptSideb
 //
 double getNoMWeightFromLowerNoM(int nom)
 {
+  //TODO update for 8 TeV
   // from study on pcminn26
   if(nom<=5)
     return 1.375364;
@@ -313,37 +314,11 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
 {
   using namespace std;
   using namespace RooFit;
-
-  TFile* signalTightRPCRootFile = TFile::Open(signalTightRPCRootFilename_.c_str());
   TFile* signalLooseRPCRootFile = TFile::Open(signalLooseRPCRootFilename_.c_str());
 
   string signalDatasetName = doIasShift ? "rooDataSetIasShift" : "rooDataSetOneCandidatePerEvent";
-
-  // get roodataset from signal file -- tight RPC (period 0)
-  RooDataSet* rooDataSetAllSignalTightRPC = (RooDataSet*)signalTightRPCRootFile->Get(signalDatasetName.c_str());
   bool countEvents  = true;
-  if(!rooDataSetAllSignalTightRPC)
-  {
-    cout << "Problem with RooDataSet named rooDataSetCandidates in signal file " <<
-      signalTightRPCRootFilename_.c_str() << endl;
-    return -3;
-  }
-  // get roodataset with gen information from signal file
-  RooDataSet* rooDataSetGenSignalTightRPC = (RooDataSet*)signalTightRPCRootFile->Get("rooDataSetGenHSCPTracks");
-  if(!rooDataSetGenSignalTightRPC)
-  {
-    cout << "Problem with RooDataSet named rooDataSetGenSignal in signal file " <<
-      signalTightRPCRootFilename_.c_str() << endl;
-    return -3;
-  }
-  // get roodataset with pileup weight info
-  RooDataSet* rooDataSetSignalPileupWeightsTightRPC = (RooDataSet*)signalTightRPCRootFile->Get("rooDataSetPileupWeights");
-  if(!rooDataSetSignalPileupWeightsTightRPC)
-  {
-    cout << "Problem with RooDataSet named rooDataSetPileupWeights in signal file " <<
-      signalTightRPCRootFilename_.c_str() << endl;
-    return -3;
-  }
+
   // get roodataset from signal file -- loose RPC (period 1)
   RooDataSet* rooDataSetAllSignalLooseRPC = (RooDataSet*)signalLooseRPCRootFile->Get(signalDatasetName.c_str());
   if(!rooDataSetAllSignalLooseRPC)
@@ -352,6 +327,7 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
       signalLooseRPCRootFilename_.c_str() << endl;
     return -3;
   }
+  cout << "Testing 8 TeV " << endl;
   // get roodataset with gen information from signal file
   RooDataSet* rooDataSetGenSignalLooseRPC = (RooDataSet*)signalLooseRPCRootFile->Get("rooDataSetGenHSCPTracks");
   if(!rooDataSetGenSignalLooseRPC)
@@ -369,7 +345,6 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     return -3;
   }
 
-  //int numSignalTracksTotal = rooDataSetAllSignalLooseRPC->numEntries()+rooDataSetAllSignalTightRPC->numEntries();
   // construct D regions for signal
   string pSearchCutString = "rooVarP>";
   pSearchCutString+=floatToString(pSidebandThreshold);
@@ -380,18 +355,11 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
   string iasSearchCutString = "rooVarIas>";
   iasSearchCutString+=floatToString(iasCutForEffAcc);
   RooDataSet* regionDDataSetSignalLooseRPC;
-  RooDataSet* regionDDataSetSignalTightRPC;
   // SIC MAR 5 -- don't do P cut for signal D region -- will be taken care of by mass cut later
   if(useIasForSideband)
     regionDDataSetSignalLooseRPC = (RooDataSet*)rooDataSetAllSignalLooseRPC->reduce(Cut(iasSearchCutString.c_str()));
   else
     regionDDataSetSignalLooseRPC = (RooDataSet*)rooDataSetAllSignalLooseRPC->reduce(Cut(ihSearchCutString.c_str()));
-  if(useIasForSideband)
-    regionDDataSetSignalTightRPC = (RooDataSet*)rooDataSetAllSignalTightRPC->reduce(Cut(iasSearchCutString.c_str()));
-  else
-    regionDDataSetSignalTightRPC = (RooDataSet*)rooDataSetAllSignalTightRPC->reduce(Cut(ihSearchCutString.c_str()));
-  //int numSignalTracksInDRegion = regionDDataSetSignalTightRPC->numEntries()+regionDDataSetSignalLooseRPC->numEntries();
-
   // get the background A region entries hist
   string fullPath = "entriesInARegion";
   TH2F* aRegionBackgroundEntriesHist = (TH2F*)backgroundPredictionRootFile->Get(fullPath.c_str());
@@ -632,11 +600,8 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
   int numBkOverIasCut = 0;
   double signalTracksOverIasCut = 0;
   double signalTracksLooseRPCTotal = 0;
-  double signalTracksTightRPCTotal = 0;
   double signalEventsOverIasCutLooseRPC = 0;
-  double signalEventsOverIasCutTightRPC = 0;
   double numSignalTracksInDRegionPassingMassCut = 0;
-  set<EventInfo> selectedSignalEventsTightRPCSet;
   set<EventInfo> selectedSignalEventsLooseRPCSet;
   const RooArgSet* genArgSetLooseRPC = rooDataSetGenSignalLooseRPC->get();
   RooRealVar* numGenHSCPTracksLooseRPCRooVar = (RooRealVar*)genArgSetLooseRPC->find(rooVarNumGenHSCPTracks.GetName());
@@ -652,20 +617,10 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
   double likelihoodMuHatPos = 1;
   double likelihoodMuHatNeg = 1;
 
-  const RooArgSet* genArgSetTightRPC = rooDataSetGenSignalTightRPC->get();
-  RooRealVar* numGenHSCPTracksTightRPCRooVar = (RooRealVar*)genArgSetTightRPC->find(rooVarNumGenHSCPTracks.GetName());
-  //RooRealVar* numGenHSCPEventsTightRPCRooVar = (RooRealVar*)genArgSetTightRPC->find(rooVarNumGenHSCPEvents.GetName());
-  //RooRealVar* signalCrossSectionTightRPCRooVar = (RooRealVar*)genArgSetTightRPC->find(rooVarSignalEventCrossSection.GetName());
-  //RooRealVar* numGenHSCPEventsPUReweightedTightRPCRooVar = (RooRealVar*)genArgSetTightRPC->find(rooVarNumGenHSCPEventsPUReweighted.GetName());
-  RooRealVar* eventWeightSumTightRPCRooVar = (RooRealVar*)genArgSetTightRPC->find(rooVarEventWeightSum.GetName());
-  RooRealVar* sampleWeightTightRPCRooVar = (RooRealVar*)genArgSetTightRPC->find(rooVarSampleWeight.GetName());
-  rooDataSetGenSignalTightRPC->get(0);
-  signalTracksTightRPCTotal = numGenHSCPTracksTightRPCRooVar->getVal();
-  //double totalGenHSCPTracks = signalTracksLooseRPCTotal+signalTracksTightRPCTotal;
-  //double totalGenHSCPEvents = numGenHSCPEventsLooseRPCRooVar->getVal()+numGenHSCPEventsTightRPCRooVar->getVal();
-  double totalGenHSCPEvents = eventWeightSumLooseRPCRooVar->getVal()+eventWeightSumTightRPCRooVar->getVal();
+  //testing for 2012 only 1 period but I had set them as both
+  double totalGenHSCPEvents = eventWeightSumLooseRPCRooVar->getVal();
   cout << "event weight sum: " << totalGenHSCPEvents << endl;
-  cout << "event weight sum loose: " << eventWeightSumLooseRPCRooVar->getVal() << " tight: " << eventWeightSumTightRPCRooVar->getVal() << endl;
+  cout << "event weight sum loose: " << eventWeightSumLooseRPCRooVar->getVal() << endl;
   // get pileup-reweighted number of MC events -- loose RPC
   const RooArgSet* argSetPileupWeightsLooseRPC = rooDataSetSignalPileupWeightsLooseRPC->get();
   RooRealVar* eventNumPUDataLooseRPC = (RooRealVar*)argSetPileupWeightsLooseRPC->find(rooVarEvent.GetName());
@@ -683,25 +638,6 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     EventInfo evtInfo(runNumPUDataLooseRPC->getVal(),lumiSecPUDataLooseRPC->getVal(),eventNumPUDataLooseRPC->getVal());
     pileupWeightLooseRPCMap[evtInfo] = pileupWeightPUDataLooseRPC->getVal();
   }
-  // get pileup-reweighted number of MC events -- tight RPC
-  const RooArgSet* argSetPileupWeightsTightRPC = rooDataSetSignalPileupWeightsTightRPC->get();
-  RooRealVar* eventNumPUDataTightRPC = (RooRealVar*)argSetPileupWeightsTightRPC->find(rooVarEvent.GetName());
-  RooRealVar* lumiSecPUDataTightRPC = (RooRealVar*)argSetPileupWeightsTightRPC->find(rooVarLumiSection.GetName());
-  RooRealVar* runNumPUDataTightRPC = (RooRealVar*)argSetPileupWeightsTightRPC->find(rooVarRun.GetName());
-  RooRealVar* pileupWeightPUDataTightRPC = (RooRealVar*)argSetPileupWeightsTightRPC->find(rooVarPUWeight.GetName());
-  //RooRealVar* pileupSystFactorPUDataTightRPC = (RooRealVar*)argSetPileupWeightsTightRPC->find(rooVarPUSystFactor.GetName());
-  double sampleWeightTightRPC = sampleWeightTightRPCRooVar->getVal();
-  // make map of pileup weights
-  std::map<EventInfo,double> pileupWeightTightRPCMap;
-  std::map<EventInfo,double>::iterator pileupWeightTightRPCMapItr;
-  for(int idx=0; idx < rooDataSetSignalPileupWeightsTightRPC->numEntries(); ++idx)
-  {
-    rooDataSetSignalPileupWeightsTightRPC->get(idx);
-    EventInfo evtInfo(runNumPUDataTightRPC->getVal(),lumiSecPUDataTightRPC->getVal(),eventNumPUDataTightRPC->getVal());
-    pileupWeightTightRPCMap[evtInfo] = pileupWeightPUDataTightRPC->getVal();
-  }
-
-
   // loop over limits hists to use
   int iteratorPos = 0;
   for(vector<TH1D>::iterator histItr = bgLimitsHistsToUse.begin();
@@ -795,8 +731,6 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     }
     RooDataSet* nomCutDRegionDataSetSignalLooseRPC =
       (RooDataSet*)regionDDataSetSignalLooseRPC->reduce(Cut(nomCutString.c_str()));
-    RooDataSet* nomCutDRegionDataSetSignalTightRPC = 
-      (RooDataSet*)regionDDataSetSignalTightRPC->reduce(Cut(nomCutString.c_str()));
     std::string etaCutString = "(rooVarEta>";
     etaCutString+=floatToString(lowerEta);
     etaCutString+="&&rooVarEta<";
@@ -812,8 +746,6 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     etaCutString+="&&rooVarEta<-";
     etaCutString+=floatToString(lowerEta);
     etaCutString+=")";
-    RooDataSet* etaCutNomCutDRegionDataSetSignalTightRPC =
-      (RooDataSet*)nomCutDRegionDataSetSignalTightRPC->reduce(Cut(etaCutString.c_str()));
     RooDataSet* etaCutNomCutDRegionDataSetSignalLooseRPC =
       (RooDataSet*)nomCutDRegionDataSetSignalLooseRPC->reduce(Cut(etaCutString.c_str()));
     //int numSignalTracksInDRegionThisSlice = etaCutNomCutDRegionDataSetSignal->numEntries();
@@ -872,6 +804,8 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
           }
         }
       }
+      //TODO: figure out why is this here - is pt made redundant by mass cut? JT
+      //seems to be because no p cut is needed as the p cut is effectively done by the mass cut
       if(usePtForSideband)
       {
         if(ptDataLooseRPC->getVal() < ptSidebandThreshold)
@@ -883,73 +817,6 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
           continue;
       }
       // ih/ias cut already applied
-      if(doMass)
-        massSignalNoMSliceHist->Fill(sqrt(massSqr),eventWeight);
-    }
-
-    // construct signal prediction hist (with mass cut) -- tight RPC
-    const RooArgSet* argSetTightRPC = etaCutNomCutDRegionDataSetSignalTightRPC->get();
-    RooRealVar* iasDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarIas.GetName());
-    RooRealVar* nomIasDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarNoMias.GetName());
-    RooRealVar* etaDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarEta.GetName());
-    RooRealVar* ihDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarIh.GetName());
-    RooRealVar* pDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarP.GetName());
-    RooRealVar* ptDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarPt.GetName());
-    RooRealVar* eventNumDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarEvent.GetName());
-    RooRealVar* lumiSecDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarLumiSection.GetName());
-    RooRealVar* runNumDataTightRPC = (RooRealVar*)argSetTightRPC->find(rooVarRun.GetName());
-    for(int evt=0; evt < etaCutNomCutDRegionDataSetSignalTightRPC->numEntries(); ++evt)
-    {
-      etaCutNomCutDRegionDataSetSignalTightRPC->get(evt);
-      // hard eta cut
-      if(fabs(etaDataTightRPC->getVal()) > 1.5) continue;
-      // find pileupWeight
-      EventInfo evtInfo(runNumDataTightRPC->getVal(),lumiSecDataTightRPC->getVal(),eventNumDataTightRPC->getVal());
-      pileupWeightTightRPCMapItr = pileupWeightTightRPCMap.find(evtInfo);
-      if(pileupWeightTightRPCMapItr == pileupWeightTightRPCMap.end())
-      {
-        std::cout << "ERROR: Could not find pileup weight for this event! Quitting." << std::endl;
-        return -5;
-      }
-      double pileupWeight = pileupWeightTightRPCMapItr->second;
-      double eventWeight = sampleWeightTightRPC*pileupWeight;
-
-      // apply mass cut
-      float massSqr = (ihDataTightRPC->getVal()-dEdx_c)*pow(pDataTightRPC->getVal(),2)/dEdx_k;
-      if(massSqr < 0)
-        continue;
-      if(sqrt(massSqr) >= massCut_)
-      {
-        iasSignalMassCutNoMSliceHist->Fill(iasDataTightRPC->getVal(),eventWeight);
-        iasSignalMassCutNoMSliceNoMShiftedHist->Fill(iasDataTightRPC->getVal(),eventWeight*getNoMWeightFromLowerNoM(nomIasDataTightRPC->getVal()));
-        numSignalTracksInDRegionPassingMassCut+=eventWeight;
-        entriesSignalHist->Fill(fabs(etaDataTightRPC->getVal())+0.01,nomIasDataTightRPC->getVal(),eventWeight);
-        if(iasDataTightRPC->getVal() > iasCutForEffAcc)
-        {
-          // if track over ias cut, put the event in the set (one track per event kept)
-          // there should only be one track per event at this stage anyway
-          pair<set<EventInfo>::iterator,bool> ret;
-          ret = selectedSignalEventsTightRPCSet.insert(evtInfo);
-          if(ret.second)
-          {
-            //cout << "INFO: insert event - run: " << runNumDataTightRPC->getVal() << " lumiSec: " << lumiSecDataTightRPC->getVal()
-            //  << " eventNum: " << eventNumDataTightRPC->getVal() << endl;
-            //cout << "add puweight =" << pileupWeight << " eventWeight=" << eventWeight << " to signalEventsOverIasCutTightRPC; total=" << signalEventsOverIasCutTightRPC << endl;
-            signalEventsOverIasCutTightRPC+=eventWeight;
-            entriesSignalIasHist->Fill(fabs(etaDataTightRPC->getVal())+0.01,nomIasDataTightRPC->getVal(),eventWeight);
-          }
-        }
-      }
-      if(usePtForSideband)
-      {
-        if(ptDataTightRPC->getVal() < ptSidebandThreshold)
-          continue;
-      }
-      else
-      {
-        if(pDataTightRPC->getVal() < pSidebandThreshold)
-          continue;
-      }
       if(doMass)
         massSignalNoMSliceHist->Fill(sqrt(massSqr),eventWeight);
     }
@@ -1075,8 +942,8 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     double signalCrossSection = 1;
     double totalSignalEvents = integratedLumi*signalCrossSection;
     //FIXME track count is sort of wrong since it has to be weighted event-wise
-    //double totalGenHSCPTracks = numGenHSCPTracksLooseRPCRooVar->getVal()+numGenHSCPTracksTightRPCRooVar->getVal();
-    double totalGenHSCPEvents = eventWeightSumLooseRPCRooVar->getVal()+eventWeightSumTightRPCRooVar->getVal();
+    //testing in 2012 quick fix for loose / tight
+    double totalGenHSCPEvents = eventWeightSumLooseRPCRooVar->getVal();
     //double fractionOfSigTracksInDRegionPassingMassCutThisSlice =
     //  numSignalTracksInDRegionMassCutThisSlice/totalGenHSCPTracks; // includes trigger eff.
     double fractionOfSigTracksInDRegionPassingMassCutThisSlice = 0;
@@ -1401,9 +1268,7 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     iteratorPos++;
     // cleanup
     delete nomCutDRegionDataSetSignalLooseRPC;
-    delete nomCutDRegionDataSetSignalTightRPC;
     delete etaCutNomCutDRegionDataSetSignalLooseRPC;
-    delete etaCutNomCutDRegionDataSetSignalTightRPC;
     //delete iasBackgroundPredictionMassCutNoMSliceHist;
     delete iasSignalMassCutNoMSliceHist;
     delete iasSignalMassCutNoMSliceNoMShiftedHist;
@@ -1411,10 +1276,8 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     delete iasHist;
   }
 
-  double signalEventsOverIasCut = signalEventsOverIasCutLooseRPC+signalEventsOverIasCutTightRPC;
-  cout << "Signal events > ias cut loose RPC: " << signalEventsOverIasCutLooseRPC <<
-    " tight RPC: " << signalEventsOverIasCutTightRPC << endl;
-
+  double signalEventsOverIasCut = signalEventsOverIasCutLooseRPC;
+  cout << "Signal events > ias cut loose RPC: " << signalEventsOverIasCutLooseRPC << endl;
   cout << endl << endl << "Ias cut = " << iasCutForEffAcc << endl << "\tfound " << backgroundTracksOverIasCutNoApprox
     << " +/- " << sqrt(backgroundTracksOverIasCutNoApproxErrorSqr)
     << " background tracks over ias cut from ias pred hist (limits)" << endl 
@@ -1428,7 +1291,7 @@ int doScaledPredictions(TFile* outputRootFile, TFile* backgroundPredictionRootFi
     //<< signalTracksOverIasCut/totalGenHSCPTracks << " signal efficiency (track level) with this ias cut. " << endl << endl;
 
   cout << "event weight sum: " << totalGenHSCPEvents << endl;
-  cout << "event weight sum loose: " << eventWeightSumLooseRPCRooVar->getVal() << " tight: " << eventWeightSumTightRPCRooVar->getVal() << endl;
+  cout << "event weight sum loose: " << eventWeightSumLooseRPCRooVar->getVal() << endl;
   //cout << "original generated events: " << totalGenHSCPEvents << " events over ias cut: " << signalEventsOverIasCut
   //  << endl;
   //cout << "original generated tracks: " << totalGenHSCPTracks << " tracks over ias cut: " << signalTracksOverIasCut
@@ -1745,7 +1608,6 @@ int main(int argc, char ** argv)
   // mass cut to use for the high-p high-Ih (search region) ias dist
   massCut_ = ana.getParameter<double>("MassCut");
   backgroundPredictionRootFilename_ = ana.getParameter<string>("BackgroundPredictionInputRootFile");
-  signalTightRPCRootFilename_ = ana.getParameter<string>("SignalTightRPCInputRootFile");
   signalLooseRPCRootFilename_ = ana.getParameter<string>("SignalLooseRPCInputRootFile");
   outputRootFilename_ = ana.getParameter<string>("OutputRootFile");
   // dE/dx calibration
@@ -1884,4 +1746,5 @@ int main(int argc, char ** argv)
   //backgroundPredictionRootFile->Close();
   //signalRootFile->Close();
 }
+
 
